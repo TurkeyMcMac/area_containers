@@ -1,3 +1,11 @@
+function merged_table(a, b)
+	local merged = table.copy(a)
+	for key, value in pairs(b) do
+		merged[key] = value
+	end
+	return merged
+end
+
 function area_containers.register_nodes()
 	-- Container node definition
 	local container_spec = table.copy(area_containers.container)
@@ -23,12 +31,17 @@ function area_containers.register_nodes()
 	minetest.register_node("area_containers:wall", wall_spec)
 
 	-- Exit wall tile definition
-	local exit_spec = table.copy(wall_spec_base)
+	local exit_spec = merged_table(wall_spec_base, area_containers.exit)
 	exit_spec.tiles = {
 		"area_containers_wall.png^area_containers_exit.png",
 	}
-	for key, value in pairs(area_containers.exit) do
-		exit_spec[key] = value
-	end
 	minetest.register_node("area_containers:exit", exit_spec)
+
+	-- Digiline port definition
+	local digiline_spec =
+		merged_table(wall_spec_base, area_containers.digiline)
+	digiline_spec.tiles = {
+		"area_containers_wall.png^area_containers_digiline.png",
+	}
+	minetest.register_node("area_containers:digiline", digiline_spec)
 end
