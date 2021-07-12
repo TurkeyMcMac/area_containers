@@ -66,6 +66,44 @@ function area_containers.container.on_rightclick(pos, node, clicker)
 	end
 end
 
+function area_containers.container.can_dig(pos)
+	local meta = minetest.get_meta(pos)
+	local inside_pos = minetest.string_to_pos(
+		meta:get_string("area_containers:inside_pos"))
+	if not inside_pos then return true end
+	-- These represent the area of the inner chamber (inclusive):
+	local min_pos = vector.offset(inside_pos, 1, 1, 1)
+	local max_pos = vector.offset(inside_pos, 14, 14, 14)
+
+	-- Detect nodes left inside.
+	local vm = minetest.get_voxel_manip()
+	local min_edge, max_edge = vm:read_from_map(min_pos, max_pos)
+	local area = VoxelArea:new{
+		MinEdge = min_edge,
+		MaxEdge = max_edge,
+	}
+	local data = vm:get_data()
+	local c_air = minetest.get_content_id("air")
+	for z = min_pos.z, max_pos.z do
+		for y = min_pos.y, max_pos.y do
+			for x = min_pos.x, max_pos.x do
+				if data[area:index(x, y, z)] ~= c_air then
+					return false
+				end
+			end
+		end
+	end
+
+	-- Detect players inside.
+	-- (Detecting all objects would probably cause problems.)
+	local objects_inside = minetest.get_objects_in_area(min_pos, max_pos)
+	for _, object in ipairs(objects_inside) do
+		if minetest.is_player(object) then return false end
+	end
+
+	return true
+end
+
 area_containers.exit = {}
 
 function area_containers.exit.on_rightclick(pos, node, clicker)
