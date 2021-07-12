@@ -13,9 +13,8 @@ function area_containers.register_nodes()
 		paramtype = "light",
 		light_source = minetest.LIGHT_MAX,
 		is_ground_content = false,
+		diggable = false,
 		on_blast = function() end,
-		can_dig = function() return false end,
-		on_dig = function() return false end,
 	}
 
 	-- Regular wall definition
