@@ -57,10 +57,8 @@ end
 function area_containers.container.on_rightclick(pos, node, clicker)
 	if clicker and minetest.is_player(clicker) then
 		local meta = minetest.get_meta(pos)
-		local inside_pos = meta:get("area_containers:inside_pos")
-		if inside_pos then
-			inside_pos = minetest.string_to_pos(inside_pos)
-		end
+		local inside_pos = minetest.string_to_pos(
+			meta:get_string("area_containers:inside_pos"))
 		if inside_pos then
 			local dest = vector.offset(inside_pos, 1, 1, 1)
 			clicker:set_pos(dest)
@@ -73,10 +71,8 @@ area_containers.exit = {}
 function area_containers.exit.on_rightclick(pos, node, clicker)
 	if clicker and minetest.is_player(clicker) then
 		local meta = minetest.get_meta(pos)
-		local container_pos = meta:get("area_containers:container_pos")
-		if container_pos then
-			container_pos = minetest.string_to_pos(container_pos)
-		end
+		local container_pos = minetest.string_to_pos(
+			meta:get_string("area_containers:container_pos"))
 		if container_pos then
 			local dest = vector.offset(container_pos, 0, 1, 0)
 			clicker:set_pos(dest)
