@@ -52,14 +52,6 @@ function area_containers.container.on_construct(pos)
 			minetest.pos_to_string(inside_pos))
 	end
 	meta:set_string("infotext", "Area container")
-	meta:set_string("owner", "")
-end
-
-function area_containers.container.after_place_node(pos, placer)
-	if placer and placer:get_player_name() ~= "" then
-		local meta = minetest.get_meta(pos)
-		meta:set_string("owner", placer:get_player_name())
-	end
 end
 
 function area_containers.container.on_rightclick(pos, node, clicker)
