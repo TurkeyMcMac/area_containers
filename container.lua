@@ -104,6 +104,10 @@ function area_containers.container.can_dig(pos)
 	return true
 end
 
+function area_containers.container.on_blast()
+	-- The simplest way to preserve the inside is just to do nothing.
+end
+
 area_containers.exit = {}
 
 function area_containers.exit.on_rightclick(pos, node, clicker)
