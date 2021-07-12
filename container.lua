@@ -12,6 +12,7 @@ local function set_up_digiline(pos, container_pos)
 	local meta = minetest.get_meta(pos)
 	meta:set_string("area_containers:container_pos",
 		minetest.pos_to_string(container_pos))
+	meta:set_string("infotext", "Digiline I/O")
 end
 
 local function construct_inside(container_pos, inside_pos)
