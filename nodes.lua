@@ -23,6 +23,7 @@ function area_containers.register_nodes()
 	local wall_spec_base = {
 		paramtype = "light",
 		light_source = minetest.LIGHT_MAX,
+		groups = {not_in_creative_inventory = 1},
 		is_ground_content = false,
 		diggable = false,
 		on_blast = function() end,
