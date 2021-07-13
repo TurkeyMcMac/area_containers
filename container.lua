@@ -226,15 +226,10 @@ function area_containers.container.tube.insert_object(pos, node, stack, dir,
 		pipe_id = "py"
 	end
 	local pipe_pos = vector.add(inside_pos, pipe_offsets[pipe_id])
-	local out_dir = vector.new(1, 0, 0)
-	-- The 1.4 is copied from pipeworks' filter-injector code:
-	local out_pos = vector.add(pipe_pos, vector.multiply(out_dir, 1.4))
-	local start_pos = pipe_pos
-	local out_speed = vector.length(dir)
-	if out_speed == 0 then out_speed = 0.1 end
-	local out_vel = vector.multiply(out_dir, out_speed)
-	pipeworks.tube_inject_item(out_pos, start_pos, out_vel, stack, owner)
-	return ItemStack() -- All was inserted.
+	local out_speed = math.max(vector.length(dir), 0.1)
+	local out_vel = vector.new(out_speed, 0, 0)
+	pipeworks.tube_inject_item(pipe_pos, pipe_pos, out_vel, stack, owner)
+	return ItemStack() -- All inserted.
 end
 
 area_containers.exit = {}
@@ -291,12 +286,9 @@ function area_containers.pipe.tube.insert_object(pos, node, stack, dir, owner)
 		meta:get_string("area_containers:container_pos"))
 	if not container_pos then return stack end
 	local out_dir = minetest.facedir_to_dir(node.param2)
-	-- The 1.4 is copied from pipeworks' filter-injector code:
-	local out_pos = vector.add(container_pos, vector.multiply(out_dir, 1.4))
-	local start_pos = container_pos
-	local out_speed = vector.length(dir)
-	if out_speed == 0 then out_speed = 0.1 end
+	local out_speed = math.max(vector.length(dir), 0.1)
 	local out_vel = vector.multiply(out_dir, out_speed)
-	pipeworks.tube_inject_item(out_pos, start_pos, out_vel, stack, owner)
-	return ItemStack() -- All was inserted.
+	pipeworks.tube_inject_item(container_pos, container_pos, out_vel, stack,
+		owner)
+	return ItemStack() -- All inserted.
 end
