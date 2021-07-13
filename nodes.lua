@@ -13,6 +13,8 @@ function area_containers.register_nodes()
 	container_spec.groups = {
 		crumbly = 3,
 		soil = 1,
+		tubedevice = 1,
+		tubedevice_receiver = 1,
 	}
 	minetest.register_node("area_containers:container", container_spec)
 	if mesecon and mesecon.register_mvps_stopper then
@@ -48,4 +50,16 @@ function area_containers.register_nodes()
 		"area_containers_wall.png^area_containers_digiline.png",
 	}
 	minetest.register_node("area_containers:digiline", digiline_spec)
+
+	-- Pipe definition
+	local pipe_spec =
+		merged_table(wall_spec_base, area_containers.pipe)
+	pipe_spec.tiles = {
+		"area_containers_wall.png^area_containers_pipe.png",
+	}
+	pipe_spec.groups = merged_table(pipe_spec.groups, {
+		tubedevice = 1,
+		tubedevice_receiver = 1,
+	})
+	minetest.register_node("area_containers:pipe", pipe_spec)
 end
