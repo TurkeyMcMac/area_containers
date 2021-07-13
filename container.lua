@@ -81,8 +81,8 @@ function area_containers.container.on_rightclick(pos, node, clicker)
 	end
 end
 
-function area_containers.container.can_dig(pos)
-	local meta = minetest.get_meta(pos)
+function area_containers.container_is_empty(pos, meta)
+	meta = meta or minetest.get_meta(pos)
 	local inside_pos = minetest.string_to_pos(
 		meta:get_string("area_containers:inside_pos"))
 	if not inside_pos then return true end
@@ -111,12 +111,17 @@ function area_containers.container.can_dig(pos)
 
 	-- Detect players inside.
 	-- (Detecting all objects would probably cause problems.)
-	local objects_inside = minetest.get_objects_in_area(min_pos, max_pos)
+	local objects_inside = minetest.get_objects_in_area(
+		vector.subtract(min_pos, 1), vector.add(max_pos, 1))
 	for _, object in ipairs(objects_inside) do
 		if minetest.is_player(object) then return false end
 	end
 
 	return true
+end
+
+function area_containers.container.can_dig(pos)
+	return area_containers.container_is_empty(pos)
 end
 
 function area_containers.container.on_blast()
