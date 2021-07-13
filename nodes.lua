@@ -15,6 +15,9 @@ function area_containers.register_nodes()
 		soil = 1,
 	}
 	minetest.register_node("area_containers:container", container_spec)
+	if mesecon and mesecon.register_mvps_stopper then
+		mesecon.register_mvps_stopper("area_containers:container")
+	end
 
 	-- Information shared by all walls
 	local wall_spec_base = {
