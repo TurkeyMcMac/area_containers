@@ -47,7 +47,7 @@ local function set_up_pipes(inside_pos)
 		py = minetest.dir_to_facedir(vector.new(0, 1, 0), true),
 		ny = minetest.dir_to_facedir(vector.new(0, -1, 0), true),
 	}
-	for id, offset in ipairs(pipe_offsets) do
+	for id, offset in pairs(pipe_offsets) do
 		local pos = vector.add(inside_pos, offset)
 		minetest.set_node(pos, {
 			name = "area_containers:pipe",
