@@ -320,10 +320,8 @@ area_containers.exit = {}
 
 function area_containers.exit.on_rightclick(pos, node, clicker)
 	if clicker and minetest.is_player(clicker) then
-		local inside_pos = vector.subtract(pos, exit_offset)
-		local inside_meta = minetest.get_meta(inside_pos)
-		local container_pos = minetest.string_to_pos(
-			inside_meta:get_string("area_containers:container_pos"))
+		local container_pos = area_containers.get_related_container(
+			node.param1, node.param2)
 		if container_pos then
 			local dest = vector.offset(container_pos, 0, 1, 0)
 			clicker:set_pos(dest)
@@ -340,10 +338,8 @@ area_containers.digiline = {
 
 function area_containers.digiline.digiline.effector.action(pos, node,
 		channel, msg)
-	local inside_pos = vector.subtract(pos, digiline_offset)
-	local inside_meta = minetest.get_meta(inside_pos)
-	local container_pos = minetest.string_to_pos(
-		inside_meta:get_string("area_containers:container_pos"))
+	local container_pos =
+		area_containers.get_related_container(node.param1, node.param2)
 	if not container_pos then return end
 	digiline:receptor_send(container_pos, digiline.rules.default,
 		channel, msg)
