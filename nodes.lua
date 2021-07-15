@@ -21,7 +21,7 @@ local function register_wall(local_name, def)
 	}
 	local full_def = merged_table(base_def, def)
 	full_def.groups.not_in_creative_inventory = 1
-	minetest.register_node(name, def)
+	minetest.register_node(name, full_def)
 	if minetest.global_exists("mesecon") and
 	   mesecon.register_mvps_stopper then
 		mesecon.register_mvps_stopper(name)
