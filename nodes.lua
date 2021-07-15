@@ -9,7 +9,7 @@ function merged_table(a, b)
 	return merged
 end
 
-function register_wall(local_name, def)
+local function register_wall(local_name, def)
 	local name = "area_containers:" .. local_name
 	local base_def = {
 		paramtype = "light",
