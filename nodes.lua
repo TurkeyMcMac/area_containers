@@ -19,7 +19,7 @@ function area_containers.register_nodes()
 	minetest.register_node("area_containers:container", container_spec)
 	if minetest.global_exists("mesecon") and
 	   mesecon.register_mvps_stopper then
-		mesecon.register_mvps_stopper("area_containers:container")
+		--mesecon.register_mvps_stopper("area_containers:container")
 	end
 
 	-- Information shared by all walls
