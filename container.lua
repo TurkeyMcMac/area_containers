@@ -12,60 +12,64 @@ end
 local exit_offset = vector.new(0, 2, 1)
 local digiline_offset = vector.new(3, 0, 3)
 
-local pipe_labels = {
-	px = "+X pipe I/O", nx = "-X pipe I/O",
-	pz = "+Z pipe I/O", nz = "-Z pipe I/O",
-	py = "+Y pipe I/O", ny = "-Y pipe I/O",
+local port_labels = {
+	px = "+X", nx = "-X",
+	pz = "+Z", nz = "-Z",
+	py = "+Y", ny = "-Y",
 }
-local pipe_offsets = {
-	px = vector.new(0, 3, 4), nx = vector.new(0, 3, 6),
-	pz = vector.new(0, 3, 8), nz = vector.new(0, 3, 10),
-	py = vector.new(0, 3, 12), ny = vector.new(0, 3, 14),
+local port_offsets = {
+	px = vector.new(0, 2, 4), nx = vector.new(0, 2, 6),
+	pz = vector.new(0, 2, 8), nz = vector.new(0, 2, 10),
+	py = vector.new(0, 2, 12), ny = vector.new(0, 2, 14),
 }
-local pipe_dirs = {
+local port_dirs = {
 	px = vector.new(1, 0, 0), nx = vector.new(-1, 0, 0),
 	pz = vector.new(0, 0, 1), nz = vector.new(0, 0, -1),
 	py = vector.new(0, 1, 0), ny = vector.new(0, -1, 0),
 }
-local pipe_ordered_ids = {"px", "nx", "pz", "nz", "py", "ny"}
+local port_ids_ordered = {"px", "nx", "pz", "nz", "py", "ny"}
+
+local port_name_prefix = "area_containers:port_"
+
+local function get_port_id_from_name(node_name)
+	return string.sub(node_name,
+		#port_name_prefix + 1, #port_name_prefix + 2)
+end
 
 local inside_offsets = { exit_offset, digiline_offset }
-for _, offset in pairs(pipe_offsets) do
+for _, offset in pairs(port_offsets) do
 	inside_offsets[#inside_offsets + 1] = offset
 end
 
-local function set_up_exit(inside_pos)
+local function set_up_exit(param1, param2, inside_pos)
 	local pos = vector.add(inside_pos, exit_offset)
 	minetest.set_node(pos, {
 		name = "area_containers:exit",
-		param1 = 0, param2 = 0,
+		param1 = param1, param2 = param2,
 	})
 	local meta = minetest.get_meta(pos)
 	meta:set_string("infotext", "Exit")
 end
 
-local function set_up_digiline(inside_pos)
+local function set_up_digiline(param1, param2, inside_pos)
 	local pos = vector.add(inside_pos, digiline_offset)
 	minetest.set_node(pos, {
 		name = "area_containers:digiline",
-		param1 = 0, param2 = 0,
+		param1 = param1, param2 = param2,
 	})
 	local meta = minetest.get_meta(pos)
 	meta:set_string("infotext", "Digiline I/O")
 end
 
-local function set_up_pipes(inside_pos)
-	local param2_ids = table.key_value_swap(pipe_ordered_ids)
-	for id, offset in pairs(pipe_offsets) do
+local function set_up_ports(param1, param2, inside_pos)
+	for id, offset in pairs(port_offsets) do
 		local pos = vector.add(inside_pos, offset)
-		local param2 = param2_ids[id] * 32 +
-			minetest.dir_to_facedir(pipe_dirs[id], true)
 		minetest.set_node(pos, {
-			name = "area_containers:pipe",
-			param1 = 0, param2 = param2,
+			name = "area_containers:port_" .. id .. "_off",
+			param1 = param1, param2 = param2,
 		})
 		local meta = minetest.get_meta(pos)
-		meta:set_string("infotext", pipe_labels[id])
+		meta:set_string("infotext", port_labels[id])
 	end
 end
 
@@ -101,21 +105,35 @@ local function construct_inside(container_pos, param1, param2)
 	vm:write_to_map(true)
 
 	area_containers.set_related_container(param1, param2, container_pos)
-	set_up_exit(inside_pos)
-	set_up_digiline(inside_pos)
-	set_up_pipes(inside_pos)
-end
-
-local function get_pipe_container_pos(pos, node)
-	local offset_id = pipe_ordered_ids[math.floor(node.param2 / 32)]
-	if not offset_id then return nil end
-	local inside_pos = vector.subtract(pos, pipe_offsets[offset_id])
-	local inside_meta = minetest.get_meta(inside_pos)
-	return minetest.string_to_pos(
-		inside_meta:get_string("area_containers:container_pos"))
+	set_up_exit(param1, param2, inside_pos)
+	set_up_digiline(param1, param2, inside_pos)
+	set_up_ports(param1, param2, inside_pos)
 end
 
 area_containers.container = {}
+
+-- There are 64 combinations of the six sides, each with its own name:
+area_containers.all_container_states = {}
+for state = 0, 63 do
+	local state_string
+	if state == 0 then state_string = "off"
+	elseif state == 63 then state_string = "on"
+	else
+		local digits = {"0", "0", "0", "0", "0", "0"}
+		local places = { 32,  16,   8,   4,   2,   1}
+		local state_check = state
+		for i, place in ipairs(places) do
+			if state_check >= place then
+				digits[i] = "1"
+				state_check = state_check - place
+			end
+		end
+		state_string = table.concat(digits)
+	end
+	local i = #area_containers.all_container_states + 1
+	area_containers.all_container_states[i] =
+		"area_containers:container_" .. state_string
+end
 
 function area_containers.container.on_construct(pos)
 	local node = get_node_force(pos)
@@ -135,7 +153,7 @@ function area_containers.container.on_construct(pos)
 	if param1 then
 		construct_inside(pos, param1, param2)
 		minetest.swap_node(pos, {
-			name = "area_containers:container",
+			name = node.name,
 			param1 = param1, param2 = param2,
 		})
 	end
@@ -153,11 +171,10 @@ function area_containers.container.on_rightclick(pos, node, clicker)
 	if clicker and minetest.is_player(clicker) then
 		local inside_pos = area_containers.get_related_inside(
 			node.param1, node.param2)
-		local inside_meta = minetest.get_meta(inside_pos)
+		local self_pos = area_containers.get_related_container(
+			node.param1, node.param2)
 		-- Make sure the player will be able to get back:
-		local container_pos = minetest.string_to_pos(
-			inside_meta:get_string("area_containers:container_pos"))
-		if container_pos and vector.equals(pos, container_pos) then
+		if self_pos and vector.equals(pos, self_pos) then
 			local dest = vector.add(inside_pos, 1)
 			clicker:set_pos(dest)
 		end
@@ -166,7 +183,8 @@ end
 
 function area_containers.container_is_empty(pos, node)
 	node = node or get_node_force(pos)
-	if node.name ~= "area_containers:container" then
+	local name_prefix = "area_containers:container_"
+	if string.sub(node.name, 1, #name_prefix) ~= name_prefix then
 		return true
 	end
 	local inside_pos = area_containers.get_related_inside(
@@ -227,6 +245,11 @@ function area_containers.container.digiline.effector.action(pos, node,
 		channel, msg)
 end
 
+area_containers.container.groups = {
+	tubedevice = 1,
+	tubedevice_receiver = 1,
+}
+
 area_containers.container.tube = {
 	connect_sides = {
 		left = 1, right = 1,
@@ -243,23 +266,52 @@ function area_containers.container.tube.insert_object(pos, node, stack, dir,
 		owner)
 	local inside_pos = area_containers.get_related_inside(
 		node.param1, node.param2)
-	local pipe_id = "nx"
+	local port_id = "nx"
 	if dir.x < 0 then
-		pipe_id = "px"
+		port_id = "px"
 	elseif dir.z > 0 then
-		pipe_id = "nz"
+		port_id = "nz"
 	elseif dir.z < 0 then
-		pipe_id = "pz"
+		port_id = "pz"
 	elseif dir.y > 0 then
-		pipe_id = "ny"
+		port_id = "ny"
 	elseif dir.y < 0 then
-		pipe_id = "py"
+		port_id = "py"
 	end
-	local pipe_pos = vector.add(inside_pos, pipe_offsets[pipe_id])
+	local port_pos = vector.add(inside_pos, port_offsets[port_id])
 	local out_speed = math.max(vector.length(dir), 0.1)
 	local out_vel = vector.new(out_speed, 0, 0)
-	pipeworks.tube_inject_item(pipe_pos, pipe_pos, out_vel, stack, owner)
+	pipeworks.tube_inject_item(port_pos, port_pos, out_vel, stack, owner)
 	return ItemStack() -- All inserted.
+end
+
+area_containers.container.mesecons = {conductor = {
+	states = area_containers.all_container_states,
+}}
+
+function area_containers.container.mesecons.conductor.rules(node)
+	local rules = {
+		{{x=1, y=0, z=0}},
+		{{x=-1, y=0, z=0}},
+		{{x=0, y=0, z=1}},
+		{{x=0, y=0, z=-1}},
+		{{x=0, y=1, z=0}},
+		{{x=0, y=-1, z=0}},
+	}
+	local self_pos = area_containers.get_related_container(
+		node.param1, node.param2)
+	if self_pos then
+		local inside_pos = area_containers.get_related_inside(
+			node.param1, node.param2)
+		for i, id in ipairs(port_ids_ordered) do
+			local port_pos =
+				vector.add(inside_pos, port_offsets[id])
+			local offset = vector.subtract(port_pos, self_pos)
+			local face_rules = rules[i]
+			face_rules[#face_rules + 1] = offset
+		end
+	end
+	return rules
 end
 
 area_containers.exit = {}
@@ -295,7 +347,11 @@ function area_containers.digiline.digiline.effector.action(pos, node,
 		channel, msg)
 end
 
-area_containers.pipe = {
+area_containers.port = {
+	groups = {
+		tubedevice = 1,
+		tubedevice_receiver = 1,
+	},
 	tube = {
 		connect_sides = {
 			left = 1, right = 1,
@@ -305,17 +361,61 @@ area_containers.pipe = {
 	},
 }
 
-function area_containers.pipe.tube.can_insert(pos, node)
-	return get_pipe_container_pos(pos, node) ~= nil
+
+function area_containers.port.tube.can_insert(pos, node)
+	return area_containers.get_related_container(node.param1, node.param2)
+		~= nil
 end
 
-function area_containers.pipe.tube.insert_object(pos, node, stack, dir, owner)
-	local container_pos = get_pipe_container_pos(pos, node)
+function area_containers.port.tube.insert_object(pos, node, stack, dir, owner)
+	local container_pos = area_containers.get_related_container(
+		node.param1, node.param2)
 	if not container_pos then return stack end
-	local out_dir = minetest.facedir_to_dir(node.param2 % 32)
+	local id = get_port_id_from_name(node.name)
+	local out_dir = port_dirs[id]
 	local out_speed = math.max(vector.length(dir), 0.1)
 	local out_vel = vector.multiply(out_dir, out_speed)
 	pipeworks.tube_inject_item(container_pos, container_pos, out_vel, stack,
 		owner)
 	return ItemStack() -- All inserted.
+end
+
+local function get_port_rules(node)
+	local rules = {
+		{x = 1, y = -1, z = 0},
+		{x = 1, y = 0, z = 0},
+		{x = 1, y = 1, z = 0},
+	}
+	local container_pos = area_containers.get_related_container(
+		node.param1, node.param2)
+	if container_pos then
+		local id = get_port_id_from_name(node.name)
+		local inside_pos = area_containers.get_related_inside(
+			node.param1, node.param2)
+		local self_pos = vector.add(inside_pos, port_offsets[id])
+		local container_offset =
+			vector.subtract(container_pos, self_pos)
+		rules[#rules + 1] = container_offset
+	end
+	return rules
+end
+
+area_containers.all_port_variants = {}
+for id, _ in pairs(port_offsets) do
+	local on_state = id .. "_on"
+	local off_state = id .. "_off"
+	area_containers.all_port_variants[on_state] = {
+		mesecons = {conductor = {
+			state = "on",
+			offstate = port_name_prefix .. off_state,
+			rules = get_port_rules,
+		}},
+	}
+	area_containers.all_port_variants[off_state] = {
+		mesecons = {conductor = {
+			state = "off",
+			onstate = port_name_prefix .. on_state,
+			rules = get_port_rules,
+		}},
+	}
 end
