@@ -41,11 +41,16 @@ end
 
 -- Parameter String Encoding and Decoding --
 
-local seg2char = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-"
-assert(#seg2char == 64)
-local char2seg = {}
-for i = 1, #seg2char do
-	char2seg[string.sub(seg2char, i, i)] = i - 1
+-- Set up the bi-directional mapping between characters and segments of 6 bits:
+local seg2byte = {string.byte(
+	"123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-",
+	1, -1
+)}
+assert(#seg2byte == 63)
+seg2byte[0] = string.byte("0") -- The indices must be [0-63]
+local byte2seg = {}
+for i = 0, 63 do
+	byte2seg[seg2byte[i]] = i
 end
 
 local PARAMS_STRING_LENGTH = 3
@@ -53,16 +58,15 @@ local PARAMS_STRING_LENGTH = 3
 local function params_to_string(param1, param2)
 	local seg1 = param1 % 64
 	local seg2 = param2 % 64
-	local seg3 = math.floor(param1 / 64) + math.floor(param1 / 64) * 4
-	return string.sub(seg2char, seg1 + 1, seg1 + 1) ..
-		string.sub(seg2char, seg2 + 1, seg2 + 1) ..
-		string.sub(seg2char, seg3 + 1, seg3 + 1)
+	local seg3 = math.floor(param1 / 64) + math.floor(param2 / 64) * 4
+	return string.char(seg2byte[seg1], seg2byte[seg2], seg2byte[seg3])
 end
 
 local function string_to_params(str)
-	local seg1 = char2seg[string.sub(str, 1, 1)]
-	local seg2 = char2seg[string.sub(str, 2, 2)]
-	local seg3 = char2seg[string.sub(str, 3, 3)]
+	local byte1, byte2, byte3 = string.byte(str, 1, 3)
+	local seg1 = byte2seg[byte1]
+	local seg2 = byte2seg[byte2]
+	local seg3 = byte2seg[byte3]
 	local param1 = seg1 + (seg3 % 4) * 64
 	local param2 = seg2 + math.floor(seg3 / 4) * 64
 	return param1, param2
