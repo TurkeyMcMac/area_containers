@@ -1,4 +1,4 @@
-function merged_table(a, b)
+local function merged_table(a, b)
 	local merged = {}
 	for key, value in pairs(a) do
 		merged[key] = value
