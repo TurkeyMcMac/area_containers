@@ -127,7 +127,7 @@ function area_containers.container.on_construct(pos)
 	local node = get_node_force(pos)
 	local param1 = node.param1
 	local param2 = node.param2
-	if not area_containers.params_are_null(param1, param2) then
+	if param1 ~= 0 or param2 ~= 0 then
 		-- The node probably moved.
 		if area_containers.reclaim_relation(param1, param2) then
 			area_containers.set_related_container(param1, param2,
@@ -150,7 +150,7 @@ end
 function area_containers.container.on_destruct(pos)
 	-- Only free properly allocated containers:
 	local node = get_node_force(pos)
-	if not area_containers.params_are_null(node.param1, node.param2) then
+	if node.param1 ~= 0 or node.param2 ~= 0 then
 		area_containers.free_relation(node.param1, node.param2)
 	end
 end

@@ -15,7 +15,7 @@ local INSIDE_SPACING = get_or_default("INSIDE_SPACING", 32)
 local Y_LEVEL = get_or_default("Y_LEVEL", -28800)
 local X_BASE = get_or_default("X_BASE", -28800)
 local Z_BASE = get_or_default("Z_BASE", -28800)
-local param1_next = get_or_default("param1_next", 1) -- Leave zero for null.
+local param1_next = get_or_default("param1_next", 1) -- Leave (0, 0) a sentinel.
 local param2_next = get_or_default("param2_next", 0)
 
 local relation_containers = {}
@@ -34,10 +34,6 @@ local function get_related_inside(param1, param2)
 	)
 end
 area_containers.get_related_inside = get_related_inside
-
-function area_containers.params_are_null(param1, param2)
-	return param1 == 0 and param2 == 0
-end
 
 -- Parameter String Encoding and Decoding --
 
