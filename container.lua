@@ -67,7 +67,7 @@ local function set_up_ports(param1, param2, inside_pos)
 	for id, offset in pairs(port_offsets) do
 		local pos = vector.add(inside_pos, offset)
 		minetest.set_node(pos, {
-			name = "area_containers:port_" .. id .. "_off",
+			name = port_name_prefix .. id .. "_off",
 			param1 = param1, param2 = param2,
 		})
 		local meta = minetest.get_meta(pos)
