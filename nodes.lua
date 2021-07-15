@@ -37,32 +37,44 @@ local function register_wall(local_name, def)
 end
 
 function area_containers.register_nodes()
-	for _, name in ipairs(area_containers.all_container_states) do
+	for i, name in ipairs(area_containers.all_container_states) do
 		local container_def = merged_table(area_containers.container, {
+			description = "Area container",
 			tiles = {"area_containers_wall.png"},
 		})
 		container_def.groups = merged_table(container_def.groups or {},
 			{crumbly = 3, soil = 1})
+		if i > 1 then
+			container_def.groups.not_in_creative_inventory = 1
+		end
 		minetest.register_node(name, container_def)
+		if i == 1 then
+			minetest.register_alias(
+				"area_containers:container", name)
+		end
 	end
 
 	register_wall("wall", {
+		description = "Container wall",
 		paramtype = "light",
 		light_source = minetest.LIGHT_MAX,
 		tiles = {"area_containers_wall.png"},
 	})
 
 	register_wall("exit", merged_table(area_containers.exit, {
+		description = "Container exit",
 		tiles = {"area_containers_wall.png^area_containers_exit.png"},
 	}))
 
 	register_wall("digiline", merged_table(area_containers.digiline, {
+		description = "Container's digiline connection",
 		tiles = {"area_containers_wall.png^" ..
 			wire_texture(digiline_color)},
 	}))
 
 	for variant, def in pairs(area_containers.all_port_variants) do
 		local full_def = merged_table(area_containers.port, def)
+		full_def.description = "Container's mesecon/tube connection"
 		local mesecons_spec = full_def.mesecons
 		if mesecons_spec and mesecon_maybe.state then
 			local color = mesecon_off_color
