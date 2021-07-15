@@ -63,16 +63,23 @@ function area_containers.register_nodes()
 
 	for variant, def in pairs(area_containers.all_port_variants) do
 		local full_def = merged_table(area_containers.port, def)
-		local color = mesecon_off_color
-		if full_def.mesecons and full_def.mesecons.conductor and
-		   full_def.mesecons.conductor.state == "on" then
-			color = mesecon_on_color
-	  	end
-		full_def.tiles = {table.concat({
-			"area_containers_wall.png",
-			wire_texture(color),
-			"area_containers_port.png",
-		}, "^")}
+		local mesecons_spec = full_def.mesecons
+		if mesecons_spec and mesecon_maybe.state then
+			local color = mesecon_off_color
+			local on = mesecon_maybe.state.on
+			if mesecons_spec and mesecons_spec.conductor and
+			   mesecons_spec.conductor.state == on then
+				color = mesecon_on_color
+			end
+			full_def.tiles = {table.concat({
+				"area_containers_wall.png",
+				wire_texture(color),
+				"area_containers_port.png",
+			}, "^")}
+		else
+			full_def.tiles = {"area_containers_wall.png^" ..
+				"area_containers_port.png"}
+		end
 		register_wall("port_" .. variant, full_def)
 
 	end

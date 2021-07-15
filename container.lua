@@ -9,6 +9,8 @@ local function get_node_force(pos)
 	return node
 end
 
+local container_name_prefix = "area_containers:container_"
+
 local exit_offset = vector.new(0, 2, 1)
 local digiline_offset = vector.new(3, 0, 3)
 
@@ -27,7 +29,7 @@ local port_dirs = {
 	pz = vector.new(0, 0, 1), nz = vector.new(0, 0, -1),
 	py = vector.new(0, 1, 0), ny = vector.new(0, -1, 0),
 }
-local port_ids_ordered = {"px", "nx", "pz", "nz", "py", "ny"}
+local port_ids_horiz = {"px", "nx", "pz", "nz"}
 
 local port_name_prefix = "area_containers:port_"
 
@@ -112,27 +114,15 @@ end
 
 area_containers.container = {}
 
--- There are 64 combinations of the six sides, each with its own name:
+-- There are 16 combinations of the horizontal sides, each with its own name:
 area_containers.all_container_states = {}
-for state = 0, 63 do
-	local state_string
-	if state == 0 then state_string = "off"
-	elseif state == 63 then state_string = "on"
-	else
-		local digits = {"0", "0", "0", "0", "0", "0"}
-		local places = { 32,  16,   8,   4,   2,   1}
-		local state_check = state
-		for i, place in ipairs(places) do
-			if state_check >= place then
-				digits[i] = "1"
-				state_check = state_check - place
-			end
-		end
-		state_string = table.concat(digits)
-	end
-	local i = #area_containers.all_container_states + 1
+local all_container_variants = {
+	"off", "0001", "0010", "0011", "0100", "0101", "0110", "0111",
+	"1000",	"1001", "1010", "1011", "1100", "1101", "1110", "on",
+}
+for i, variant in ipairs(all_container_variants) do
 	area_containers.all_container_states[i] =
-		"area_containers:container_" .. state_string
+		container_name_prefix .. variant
 end
 
 function area_containers.container.on_construct(pos)
@@ -183,10 +173,8 @@ end
 
 function area_containers.container_is_empty(pos, node)
 	node = node or get_node_force(pos)
-	local name_prefix = "area_containers:container_"
-	if string.sub(node.name, 1, #name_prefix) ~= name_prefix then
-		return true
-	end
+	local name_prefix = string.sub(node.name, 1, #container_name_prefix)
+	if name_prefix ~= container_name_prefix then return true end
 	local inside_pos = area_containers.get_related_inside(
 		node.param1, node.param2)
 	-- These represent the area of the inner chamber (inclusive):
@@ -291,19 +279,33 @@ area_containers.container.mesecons = {conductor = {
 
 function area_containers.container.mesecons.conductor.rules(node)
 	local rules = {
-		{{x=1, y=0, z=0}},
-		{{x=-1, y=0, z=0}},
-		{{x=0, y=0, z=1}},
-		{{x=0, y=0, z=-1}},
-		{{x=0, y=1, z=0}},
-		{{x=0, y=-1, z=0}},
+		{
+			{x = 1, y = 1, z = 0},
+			{x = 1, y = 0, z = 0},
+			{x = 1, y = -1, z = 0},
+		},
+		{
+			{x = -1, y = 1, z = 0},
+			{x = -1, y = 0, z = 0},
+			{x = -1, y = -1, z = 0},
+		},
+		{
+			{x = 0, y = 1, z = 1},
+			{x = 0, y = 0, z = 1},
+			{x = 0, y = -1, z = 1},
+		},
+		{
+			{x = 0, y = 1, z = -1},
+			{x = 0, y = 0, z = -1},
+			{x = 0, y = -1, z = -1},
+		},
 	}
 	local self_pos = area_containers.get_related_container(
 		node.param1, node.param2)
 	if self_pos then
 		local inside_pos = area_containers.get_related_inside(
 			node.param1, node.param2)
-		for i, id in ipairs(port_ids_ordered) do
+		for i, id in ipairs(port_ids_horiz) do
 			local port_pos =
 				vector.add(inside_pos, port_offsets[id])
 			local offset = vector.subtract(port_pos, self_pos)
@@ -400,8 +402,12 @@ local function get_port_rules(node)
 	return rules
 end
 
-area_containers.all_port_variants = {}
-for id, _ in pairs(port_offsets) do
+-- The vertical faces don't get mesecons since it wasn't working with them.
+area_containers.all_port_variants = {
+	py_off = {},
+	ny_off = {},
+}
+for _, id in ipairs(port_ids_horiz) do
 	local on_state = id .. "_on"
 	local off_state = id .. "_off"
 	area_containers.all_port_variants[on_state] = {
