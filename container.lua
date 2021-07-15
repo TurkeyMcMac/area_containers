@@ -59,8 +59,6 @@ local function set_up_digiline(param1, param2, inside_pos)
 		name = "area_containers:digiline",
 		param1 = param1, param2 = param2,
 	})
-	local meta = minetest.get_meta(pos)
-	meta:set_string("infotext", "Digiline I/O")
 end
 
 local function set_up_ports(param1, param2, inside_pos)

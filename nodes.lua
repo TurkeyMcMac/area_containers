@@ -66,10 +66,14 @@ function area_containers.register_nodes()
 		tiles = {"area_containers_wall.png^area_containers_exit.png"},
 	}))
 
+	local digiline_texture = "area_containers_wall.png"
+	if minetest.global_exists("digiline") then
+		digiline_texture = digiline_texture .. "^" ..
+			wire_texture(digiline_color)
+	end
 	register_wall("digiline", merged_table(area_containers.digiline, {
 		description = "Container's digiline connection",
-		tiles = {"area_containers_wall.png^" ..
-			wire_texture(digiline_color)},
+		tiles = {digiline_texture},
 	}))
 
 	for variant, def in pairs(area_containers.all_port_variants) do
