@@ -12,9 +12,9 @@ local function get_or_default(key, default)
 end
 
 local INSIDE_SPACING = get_or_default("INSIDE_SPACING", 32)
-local Y_LEVEL = get_or_default("Y_LEVEL", -28800)
-local X_BASE = get_or_default("X_BASE", -28800)
-local Z_BASE = get_or_default("Z_BASE", -28800)
+local Y_LEVEL = get_or_default("Y_LEVEL", 30896)
+local X_BASE = get_or_default("X_BASE", -30896)
+local Z_BASE = get_or_default("Z_BASE", -30896)
 local param1_next = get_or_default("param1_next", 1) -- Leave (0, 0) a sentinel.
 local param2_next = get_or_default("param2_next", 0)
 
