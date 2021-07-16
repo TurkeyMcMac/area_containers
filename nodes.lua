@@ -16,7 +16,11 @@ local function merged_table(a, b)
 end
 
 local function wire_texture(color)
-	return "(area_containers_wire.png^[colorize:" .. color .. ":255)";
+	return "(area_containers_wire.png^[colorize:" .. color .. ":255)"
+end
+
+local function outer_wire_texture(color)
+	return "(area_containers_outer_wire.png^[colorize:" .. color .. ":255)"
 end
 
 local base_wall_def = {
@@ -37,11 +41,37 @@ local function register_wall(local_name, def)
 end
 
 function area_containers.register_nodes()
+	local outer_tile_on = "area_containers_outer_port.png"
+	local outer_tile_off = "area_containers_outer_port.png"
+	if minetest.global_exists("mesecon") then
+		outer_tile_on = outer_tile_on .. "^" ..
+			outer_wire_texture(mesecon_on_color)
+		outer_tile_off = outer_tile_off .. "^" ..
+			outer_wire_texture(mesecon_off_color)
+	end
+	local container_activations = {
+		{0, 0, 0, 0}, {0, 0, 0, 1}, {0, 0, 1, 0}, {0, 0, 1, 1},
+		{0, 1, 0, 0}, {0, 1, 0, 1}, {0, 1, 1, 0}, {0, 1, 1, 1},
+		{1, 0, 0, 0}, {1, 0, 0, 1}, {1, 0, 1, 0}, {1, 0, 1, 1},
+		{1, 1, 0, 0}, {1, 1, 0, 1}, {1, 1, 1, 0}, {1, 1, 1, 1},
+	}
 	for i, name in ipairs(area_containers.all_container_states) do
 		local container_def = merged_table(area_containers.container, {
 			description = "Area container",
-			tiles = {"area_containers_wall.png"},
+			tiles = {
+				"area_containers_outer_port.png", -- +Y
+				"area_containers_outer_port.png", -- -Y
+				"area_containers_outer_port.png", -- +X
+				"area_containers_outer_port.png", -- -X
+				"area_containers_outer_port.png", -- +Z
+				"area_containers_outer_port.png", -- -Z
+			},
 		})
+		local activation = container_activations[i]
+		local tile_choices = {outer_tile_off, outer_tile_on}
+		for i, active in ipairs(activation) do
+			container_def.tiles[7 - i] = tile_choices[active + 1]
+		end
 		container_def.groups = merged_table(container_def.groups or {},
 			{crumbly = 3, soil = 1})
 		if i > 1 then
