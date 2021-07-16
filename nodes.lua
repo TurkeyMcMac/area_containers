@@ -72,6 +72,11 @@ function area_containers.register_nodes()
 		for i, active in ipairs(activation) do
 			container_def.tiles[7 - i] = tile_choices[active + 1]
 		end
+		if minetest.global_exists("default") and
+		   default.node_sound_metal_defaults then
+			container_def.sounds =
+				default.node_sound_metal_defaults()
+		end
 		container_def.groups = merged_table(container_def.groups or {},
 			{cracky = 2})
 		if i > 1 then
