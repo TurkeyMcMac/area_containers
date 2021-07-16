@@ -73,7 +73,7 @@ function area_containers.register_nodes()
 			container_def.tiles[7 - i] = tile_choices[active + 1]
 		end
 		container_def.groups = merged_table(container_def.groups or {},
-			{crumbly = 3, soil = 1})
+			{cracky = 2})
 		if i > 1 then
 			container_def.groups.not_in_creative_inventory = 1
 		end
