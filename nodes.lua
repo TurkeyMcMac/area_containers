@@ -5,11 +5,8 @@ local digiline_color = "#4358C0"
 local mesecon_maybe = minetest.global_exists("mesecon") and mesecon or {}
 
 local function merged_table(a, b)
-	local merged = {}
-	for key, value in pairs(a) do
-		merged[key] = value
-	end
-	for key, value in pairs(b) do
+	local merged = table.copy(a)
+	for key, value in pairs(table.copy(b)) do
 		merged[key] = value
 	end
 	return merged
