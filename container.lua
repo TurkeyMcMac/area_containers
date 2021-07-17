@@ -14,22 +14,17 @@ local container_name_prefix = "area_containers:container_"
 local exit_offset = vector.new(0, 2, 1)
 local digiline_offset = vector.new(3, 0, 3)
 
-local port_labels = {
-	px = "+X", nx = "-X",
-	pz = "+Z", nz = "-Z",
-	py = "+Y", ny = "-Y",
-}
 local port_offsets = {
-	px = vector.new(0, 2, 4), nx = vector.new(0, 2, 6),
-	pz = vector.new(0, 2, 8), nz = vector.new(0, 2, 10),
+	nx = vector.new(0, 2, 4), pz = vector.new(0, 2, 6),
+	px = vector.new(0, 2, 8), nz = vector.new(0, 2, 10),
 	py = vector.new(0, 2, 12), ny = vector.new(0, 2, 14),
 }
 local port_dirs = {
-	px = vector.new(1, 0, 0), nx = vector.new(-1, 0, 0),
-	pz = vector.new(0, 0, 1), nz = vector.new(0, 0, -1),
+	nx = vector.new(-1, 0, 0), pz = vector.new(0, 0, 1),
+	px = vector.new(1, 0, 0), nz = vector.new(0, 0, -1),
 	py = vector.new(0, 1, 0), ny = vector.new(0, -1, 0),
 }
-local port_ids_horiz = {"px", "nx", "pz", "nz"}
+local port_ids_horiz = {"nx", "pz", "px", "nz"}
 
 local port_name_prefix = "area_containers:port_"
 
@@ -68,8 +63,6 @@ local function set_up_ports(param1, param2, inside_pos)
 			name = port_name_prefix .. id .. "_off",
 			param1 = param1, param2 = param2,
 		})
-		local meta = minetest.get_meta(pos)
-		meta:set_string("infotext", port_labels[id])
 	end
 end
 
@@ -275,6 +268,11 @@ area_containers.container.mesecons = {conductor = {
 	states = area_containers.all_container_states,
 }}
 
+local function container_rules_add_port(rules, port_id, self_pos, inside_pos)
+	local port_pos = vector.add(inside_pos, port_offsets[port_id])
+	local offset_to_port = vector.subtract(port_pos, self_pos)
+	rules[#rules + 1] = offset_to_port
+end
 function area_containers.container.mesecons.conductor.rules(node)
 	local rules = {
 		{
@@ -303,13 +301,10 @@ function area_containers.container.mesecons.conductor.rules(node)
 	if self_pos then
 		local inside_pos = area_containers.get_related_inside(
 			node.param1, node.param2)
-		for i, id in ipairs(port_ids_horiz) do
-			local port_pos =
-				vector.add(inside_pos, port_offsets[id])
-			local offset = vector.subtract(port_pos, self_pos)
-			local face_rules = rules[i]
-			face_rules[#face_rules + 1] = offset
-		end
+		container_rules_add_port(rules[1], "px", self_pos, inside_pos)
+		container_rules_add_port(rules[2], "nx", self_pos, inside_pos)
+		container_rules_add_port(rules[3], "pz", self_pos, inside_pos)
+		container_rules_add_port(rules[4], "nz", self_pos, inside_pos)
 	end
 	return rules
 end

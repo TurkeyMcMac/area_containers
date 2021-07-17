@@ -41,13 +41,11 @@ local function register_wall(local_name, def)
 end
 
 function area_containers.register_nodes()
-	local outer_tile_on = "area_containers_outer_port.png"
-	local outer_tile_off = "area_containers_outer_port.png"
-	if minetest.global_exists("mesecon") then
-		outer_tile_on = outer_tile_on .. "^" ..
-			outer_wire_texture(mesecon_on_color)
-		outer_tile_off = outer_tile_off .. "^" ..
-			outer_wire_texture(mesecon_off_color)
+	local container_tiles = {}
+	local container_tile_ids = {"py", "ny", "px", "nx", "pz", "nz"}
+	for i, id in ipairs(container_tile_ids) do
+		container_tiles[i] = "area_containers_outer_port.png^" ..
+			"area_containers_" .. id .. ".png"
 	end
 	local container_activations = {
 		{0, 0, 0, 0}, {0, 0, 0, 1}, {0, 0, 1, 0}, {0, 0, 1, 1},
@@ -58,20 +56,26 @@ function area_containers.register_nodes()
 	for i, name in ipairs(area_containers.all_container_states) do
 		local container_def = merged_table(area_containers.container, {
 			description = "Area container",
-			tiles = {
-				"area_containers_outer_port.png", -- +Y
-				"area_containers_outer_port.png", -- -Y
-				"area_containers_outer_port.png", -- +X
-				"area_containers_outer_port.png", -- -X
-				"area_containers_outer_port.png", -- +Z
-				"area_containers_outer_port.png", -- -Z
-			},
+			tiles = table.copy(container_tiles),
 			drop = area_containers.all_container_states[1],
 		})
-		local activation = container_activations[i]
-		local tile_choices = {outer_tile_off, outer_tile_on}
-		for i, active in ipairs(activation) do
-			container_def.tiles[7 - i] = tile_choices[active + 1]
+		if minetest.global_exists("mesecon") then
+			local activation = container_activations[i]
+			local wire_choices = {
+				outer_wire_texture(mesecon_off_color),
+				outer_wire_texture(mesecon_on_color),
+			}
+			for i, active in ipairs(activation) do
+				-- The tile corresponding to this bit:
+				local tile_idx = 7 - i
+				local label = "area_containers_" ..
+					container_tile_ids[tile_idx] .. ".png"
+				container_def.tiles[tile_idx] = table.concat({
+					"area_containers_outer_port.png",
+					wire_choices[active + 1],
+					label,
+				}, "^")
+			end
 		end
 		if minetest.global_exists("default") and
 		   default.node_sound_metal_defaults then
@@ -113,6 +117,7 @@ function area_containers.register_nodes()
 	for variant, def in pairs(area_containers.all_port_variants) do
 		local full_def = merged_table(area_containers.port, def)
 		full_def.description = "Container's mesecon/tube connection"
+		local tile = "area_containers_wall.png"
 		local mesecons_spec = full_def.mesecons
 		if mesecons_spec and mesecon_maybe.state then
 			local color = mesecon_off_color
@@ -121,15 +126,15 @@ function area_containers.register_nodes()
 			   mesecons_spec.conductor.state == on then
 				color = mesecon_on_color
 			end
-			full_def.tiles = {table.concat({
-				"area_containers_wall.png",
-				wire_texture(color),
-				"area_containers_port.png",
-			}, "^")}
-		else
-			full_def.tiles = {"area_containers_wall.png^" ..
-				"area_containers_port.png"}
+			tile = tile .. "^" .. wire_texture(color)
 		end
+		local label_id = string.sub(variant, 1, 2)
+		tile = table.concat({
+			tile, "^",
+			"area_containers_port.png^",
+			"area_containers_", label_id, ".png",
+		}, "")
+		full_def.tiles = {tile}
 		register_wall("port_" .. variant, full_def)
 
 	end
