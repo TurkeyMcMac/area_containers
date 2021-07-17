@@ -33,11 +33,6 @@ local function get_port_id_from_name(node_name)
 		#port_name_prefix + 1, #port_name_prefix + 2)
 end
 
-local inside_offsets = { exit_offset, digiline_offset }
-for _, offset in pairs(port_offsets) do
-	inside_offsets[#inside_offsets + 1] = offset
-end
-
 local function set_up_exit(param1, param2, inside_pos)
 	local pos = vector.add(inside_pos, exit_offset)
 	minetest.set_node(pos, {
