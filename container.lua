@@ -119,16 +119,31 @@ function area_containers.container.on_construct(pos)
 			area_containers.set_related_container(param1, param2,
 				pos)
 			return
+		else
+			minetest.log("error", "Could not reclaim the inside " ..
+				"of the area container now located at " ..
+				minetest.pos_to_string(pos) .. " with " ..
+				"param1 = " .. param1 .. " and param2 = " ..
+				param2 .. "; allocating a new inside instead")
 		end
 	end
-	local meta = minetest.get_meta(pos)
-	meta:set_string("infotext", "Area container")
 	param1, param2 = area_containers.alloc_relation()
+	local meta = minetest.get_meta(pos)
 	if param1 then
+		meta:set_string("infotext", "Area container")
 		construct_inside(pos, param1, param2)
 		minetest.swap_node(pos, {
 			name = node.name,
 			param1 = param1, param2 = param2,
+		})
+	else
+		minetest.log("error", "Could not allocate an inside when " ..
+			"constructing an area container at " ..
+			minetest.pos_to_string(pos))
+		meta:set_string("infotext", "Broken area container")
+		minetest.swap_node(pos, {
+			name = node.name,
+			param1 = 0, param2 = 0,
 		})
 	end
 end
@@ -159,6 +174,8 @@ function area_containers.container_is_empty(pos, node)
 	node = node or get_node_maybe_load(pos)
 	local name_prefix = string.sub(node.name, 1, #container_name_prefix)
 	if name_prefix ~= container_name_prefix then return true end
+	-- Invalid containers are empty:
+	if node.param1 == 0 and node.param2 == 0 then return true end
 	local inside_pos = area_containers.get_related_inside(
 		node.param1, node.param2)
 	-- These represent the area of the inner chamber (inclusive):
@@ -230,8 +247,8 @@ area_containers.container.tube = {
 	},
 }
 
-function area_containers.container.tube.can_insert()
-	return true
+function area_containers.container.tube.can_insert(pos, node)
+	return node.param1 ~= 0 or node.param2 ~= 0
 end
 
 function area_containers.container.tube.insert_object(pos, node, stack, dir,
