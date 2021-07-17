@@ -1,12 +1,10 @@
-local function get_node_force(pos)
+local function get_node_maybe_load(pos)
 	local node = minetest.get_node_or_nil(pos)
 	if node then return node end
 	-- Try to load the block:
 	local vm = minetest.get_voxel_manip()
 	vm:read_from_map(pos, pos)
-	node = minetest.get_node_or_nil(pos)
-	assert(node)
-	return node
+	return minetest.get_node(pos) -- Might be "ignore"
 end
 
 local container_name_prefix = "area_containers:container_"
@@ -112,7 +110,7 @@ for i, variant in ipairs(all_container_variants) do
 end
 
 function area_containers.container.on_construct(pos)
-	local node = get_node_force(pos)
+	local node = get_node_maybe_load(pos)
 	local param1 = node.param1
 	local param2 = node.param2
 	if param1 ~= 0 or param2 ~= 0 then
@@ -137,7 +135,7 @@ end
 
 function area_containers.container.on_destruct(pos)
 	-- Only free properly allocated containers:
-	local node = get_node_force(pos)
+	local node = get_node_maybe_load(pos)
 	if node.param1 ~= 0 or node.param2 ~= 0 then
 		area_containers.free_relation(node.param1, node.param2)
 	end
@@ -158,7 +156,7 @@ function area_containers.container.on_rightclick(pos, node, clicker)
 end
 
 function area_containers.container_is_empty(pos, node)
-	node = node or get_node_force(pos)
+	node = node or get_node_maybe_load(pos)
 	local name_prefix = string.sub(node.name, 1, #container_name_prefix)
 	if name_prefix ~= container_name_prefix then return true end
 	local inside_pos = area_containers.get_related_inside(
