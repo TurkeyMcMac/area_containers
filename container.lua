@@ -259,6 +259,11 @@ function area_containers.container.tube.insert_object(pos, node, stack, dir,
 	return ItemStack() -- All inserted.
 end
 
+if minetest.global_exists("pipeworks") then
+	area_containers.container.after_place_node = pipeworks.after_place
+	area_containers.container.after_dig_node = pipeworks.after_dig
+end
+
 area_containers.container.mesecons = {conductor = {
 	states = area_containers.all_container_states,
 }}
