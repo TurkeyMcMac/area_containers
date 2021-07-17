@@ -1,3 +1,20 @@
+-- Settings --
+
+local DEFAULT_INSIDE_SPACING = 16 * area_containers.settings.spacing_blocks
+local DEFAULT_Y_LEVEL = 16 * area_containers.settings.y_level_blocks
+local DEFAULT_X_BASE = -30896
+local DEFAULT_Z_BASE = -30896
+
+-- Check that the parameters are within bounds:
+local mapgen_limit_rounded = 16 * math.floor(
+	tonumber(minetest.settings:get("mapgen_limit") or 31000) / 16)
+assert(DEFAULT_Y_LEVEL >= -mapgen_limit_rounded)
+assert(DEFAULT_Y_LEVEL + 16 <= mapgen_limit_rounded)
+assert(DEFAULT_X_BASE >= -mapgen_limit_rounded)
+assert(DEFAULT_X_BASE + DEFAULT_INSIDE_SPACING * 255 <= mapgen_limit_rounded)
+assert(DEFAULT_Z_BASE >= -mapgen_limit_rounded)
+assert(DEFAULT_Z_BASE + DEFAULT_INSIDE_SPACING * 255 <= mapgen_limit_rounded)
+
 -- Persistent Configuration --
 
 local storage = minetest.get_mod_storage()
@@ -11,10 +28,10 @@ local function get_or_default(key, default)
 	end
 end
 
-local INSIDE_SPACING = get_or_default("INSIDE_SPACING", 32)
-local Y_LEVEL = get_or_default("Y_LEVEL", 30896)
-local X_BASE = get_or_default("X_BASE", -30896)
-local Z_BASE = get_or_default("Z_BASE", -30896)
+local INSIDE_SPACING = get_or_default("INSIDE_SPACING", DEFAULT_INSIDE_SPACING)
+local Y_LEVEL = get_or_default("Y_LEVEL", DEFAULT_Y_LEVEL)
+local X_BASE = get_or_default("X_BASE", DEFAULT_X_BASE)
+local Z_BASE = get_or_default("Z_BASE", DEFAULT_Z_BASE)
 local param1_next = get_or_default("param1_next", 1) -- Leave (0, 0) a sentinel.
 local param2_next = get_or_default("param2_next", 0)
 
