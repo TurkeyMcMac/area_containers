@@ -66,6 +66,7 @@ function area_containers.register_nodes()
 				"area_containers_outer_port.png", -- +Z
 				"area_containers_outer_port.png", -- -Z
 			},
+			drop = area_containers.all_container_states[1],
 		})
 		local activation = container_activations[i]
 		local tile_choices = {outer_tile_off, outer_tile_on}
@@ -83,11 +84,9 @@ function area_containers.register_nodes()
 			container_def.groups.not_in_creative_inventory = 1
 		end
 		minetest.register_node(name, container_def)
-		if i == 1 then
-			minetest.register_alias(
-				"area_containers:container", name)
-		end
 	end
+	minetest.register_alias("area_containers:container",
+		area_containers.all_container_states[1])
 
 	register_wall("wall", {
 		description = "Container wall",
