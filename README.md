@@ -21,7 +21,7 @@ These files are licensed under a [CC BY-SA 3.0 license][5].
 
 They are also under the same copyright as the source files:
 
-    Copyright © 2021 Jude Melton-Houghton
+    Copyright © 2021  Jude Melton-Houghton
 
 [1]: https://www.minetest.net/
 [2]: https://mesecons.net/
