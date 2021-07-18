@@ -1,3 +1,22 @@
+--[[
+    Copyright (C) 2021  Jude Melton-Houghton
+
+    This file is part of area_containers. It implements node functionality.
+
+    area_containers is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    area_containers is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with area_containers. If not, see <https://www.gnu.org/licenses/>.
+]]
+
 local function get_node_maybe_load(pos)
 	local node = minetest.get_node_or_nil(pos)
 	if node then return node end
