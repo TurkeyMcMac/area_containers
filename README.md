@@ -1,5 +1,7 @@
 # area\_containers
 
+![The outside and inside of an area container](screenshot.png)
+
 This is a mod for [Minetest][1]. It implements an "area container," that is,
 a node that holds an area in which you can walk around and build stuff. The
 structures in the container can communicate with the outside using
