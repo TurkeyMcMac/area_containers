@@ -155,4 +155,12 @@ function area_containers.register_nodes()
 		register_wall("port_" .. variant, full_def)
 
 	end
+
+	register_wall("object_counter",
+		merged_table(area_containers.object_counter, {
+			description =
+				"Counter of non-player objects in a container",
+			tiles = {"area_containers_wall.png"},
+		})
+	)
 end

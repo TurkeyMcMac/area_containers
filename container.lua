@@ -26,6 +26,29 @@ local function get_node_maybe_load(pos)
 	return minetest.get_node(pos) -- Might be "ignore"
 end
 
+local function update_non_player_object_count(inside_pos)
+	if minetest.compare_block_status(inside_pos, "active") then
+		local object_count = 0
+		local objects_inside = minetest.get_objects_in_area(
+			inside_pos, vector.add(inside_pos, 15))
+		for _, object in ipairs(objects_inside) do
+			if not object:is_player() then
+				object_count = object_count + 1
+			end
+		end
+		local inside_meta = minetest.get_meta(inside_pos)
+		inside_meta:set_int("area_containers:object_count",
+			object_count)
+		return object_count
+	end
+	return nil
+end
+
+local function get_non_player_object_count(inside_pos)
+	local inside_meta = minetest.get_meta(inside_pos)
+	return inside_meta:get_int("area_containers:object_count")
+end
+
 local container_name_prefix = "area_containers:container_"
 
 local exit_offset = vector.new(0, 2, 1)
@@ -48,6 +71,19 @@ local port_name_prefix = "area_containers:port_"
 local function get_port_id_from_name(node_name)
 	return string.sub(node_name,
 		#port_name_prefix + 1, #port_name_prefix + 2)
+end
+
+
+local function set_up_object_counter(param1, param2, inside_pos)
+	-- Swap the node to keep the relation metadata:
+	minetest.swap_node(inside_pos, {
+		name = "area_containers:object_counter",
+		param1 = param1, param2 = param2,
+	})
+	local meta = minetest.get_meta(inside_pos)
+	meta:set_int("area_containers:object_count", 0)
+	local timer = minetest.get_node_timer(inside_pos)
+	timer:start(1)
 end
 
 local function set_up_exit(param1, param2, inside_pos)
@@ -110,6 +146,7 @@ local function construct_inside(container_pos, param1, param2)
 	vm:write_to_map(true)
 
 	area_containers.set_related_container(param1, param2, container_pos)
+	set_up_object_counter(param1, param2, inside_pos)
 	set_up_exit(param1, param2, inside_pos)
 	set_up_digiline(param1, param2, inside_pos)
 	set_up_ports(param1, param2, inside_pos)
@@ -220,13 +257,12 @@ function area_containers.container_is_empty(pos, node)
 		end
 	end
 
-	-- Detect players inside.
-	-- (Detecting all objects would probably cause problems.)
+	-- Detect objects inside.
 	local objects_inside = minetest.get_objects_in_area(
 		vector.subtract(min_pos, 1), vector.add(max_pos, 1))
-	for _, object in ipairs(objects_inside) do
-		if minetest.is_player(object) then return false end
-	end
+	if #objects_inside > 0 then return false end
+	-- Detect non-player objects in unloaded inside chambers:
+	if get_non_player_object_count(inside_pos) > 0 then return false end
 
 	return true
 end
@@ -347,6 +383,11 @@ area_containers.exit = {}
 
 function area_containers.exit.on_rightclick(pos, node, clicker)
 	if clicker and minetest.is_player(clicker) then
+		-- Update the count before the block is deactivated:
+		local inside_pos = area_containers.get_related_inside(
+			node.param1, node.param2)
+		update_non_player_object_count(inside_pos)
+
 		local container_pos = area_containers.get_related_container(
 			node.param1, node.param2)
 		if container_pos then
@@ -447,4 +488,12 @@ for _, id in ipairs(port_ids_horiz) do
 			rules = get_port_rules,
 		}},
 	}
+end
+
+area_containers.object_counter = {}
+
+function area_containers.object_counter.on_timer(pos, timer)
+	-- The counter's position is also the inside_pos:
+	update_non_player_object_count(pos)
+	return true
 end
