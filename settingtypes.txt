@@ -20,7 +20,7 @@
 area_containers_enable_crafts (Enable crafts) bool true
 
 # The period of placement of inside chambers (chambers linked to area containers,) measured in multiples of the block size (16.) This cannot be changed once the world is generated.
-area_containers_spacing_blocks (Inside spacing) int 2 1 15
+area_containers_spacing_blocks (Inside spacing) int 15 1 15
 
 # The Y coordinate of the bottom face of all inside chambers (chambers linked to area containers,) measured in multiples of the block size (16.) This cannot be changed once the world is generated.
 area_containers_y_level_blocks (Inside Y-level) int 1931 -1932 1931
