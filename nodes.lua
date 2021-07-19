@@ -22,8 +22,10 @@ local mesecon_on_color = "#FCFF00"
 local mesecon_off_color = "#8A8C00"
 local digiline_color = "#4358C0"
 
+-- The mesecons namespace, or an empty table if it isn't available.
 local mesecon_maybe = minetest.global_exists("mesecon") and mesecon or {}
 
+-- A new table that is a deep copy of a and b, with b keys overriding a keys.
 local function merged_table(a, b)
 	local merged = table.copy(a)
 	for key, value in pairs(table.copy(b)) do
@@ -32,10 +34,12 @@ local function merged_table(a, b)
 	return merged
 end
 
+-- Returns the inside wire texture specification with the given ColorString.
 local function wire_texture(color)
 	return "(area_containers_wire.png^[colorize:" .. color .. ":255)"
 end
 
+-- Returns the outside wire texture specification with the given ColorString.
 local function outer_wire_texture(color)
 	return "(area_containers_outer_wire.png^[colorize:" .. color .. ":255)"
 end
@@ -46,6 +50,8 @@ local base_wall_def = {
 	diggable = false,
 	on_blast = function() end,
 }
+-- Registers the wall "area_containers:"..local_name with the definition that
+-- is merged into the base definition above.
 local function register_wall(local_name, def)
 	local name = "area_containers:" .. local_name
 	local full_def = merged_table(base_wall_def, def)
@@ -53,23 +59,28 @@ local function register_wall(local_name, def)
 	full_def.groups.not_in_creative_inventory = 1
 	minetest.register_node(name, full_def)
 	if mesecon_maybe.register_mvps_stopper then
+		-- You can't push walls.
 		mesecon_maybe.register_mvps_stopper(name)
 	end
 end
 
 function area_containers.register_nodes()
+	-- The base container tiles (order: +Y, -Y, +X, -X, +Z, -Z):
 	local container_tiles = {}
+	-- IDs for the purpose of identifying labels:
 	local container_tile_ids = {"py", "ny", "px", "nx", "pz", "nz"}
 	for i, id in ipairs(container_tile_ids) do
 		container_tiles[i] = "area_containers_outer_port.png^" ..
 			"area_containers_" .. id .. ".png"
 	end
+	-- The activations in parallel to area_containers.all_container_states:
 	local container_activations = {
 		{0, 0, 0, 0}, {0, 0, 0, 1}, {0, 0, 1, 0}, {0, 0, 1, 1},
 		{0, 1, 0, 0}, {0, 1, 0, 1}, {0, 1, 1, 0}, {0, 1, 1, 1},
 		{1, 0, 0, 0}, {1, 0, 0, 1}, {1, 0, 1, 0}, {1, 0, 1, 1},
 		{1, 1, 0, 0}, {1, 1, 0, 1}, {1, 1, 1, 0}, {1, 1, 1, 1},
 	}
+	-- Register all the container nodes:
 	for i, name in ipairs(area_containers.all_container_states) do
 		local container_def = merged_table(area_containers.container, {
 			description = "Area container",
@@ -131,12 +142,14 @@ function area_containers.register_nodes()
 		tiles = {digiline_texture},
 	}))
 
+	-- Register all port node variants:
 	for variant, def in pairs(area_containers.all_port_variants) do
 		local full_def = merged_table(area_containers.port, def)
 		full_def.description = "Container's mesecon/tube connection"
 		local tile = "area_containers_wall.png"
 		local mesecons_spec = full_def.mesecons
 		if mesecons_spec and mesecon_maybe.state then
+			-- Register correct colors for mesecons-enabled ports:
 			local color = mesecon_off_color
 			local on = mesecon_maybe.state.on
 			if mesecons_spec and mesecons_spec.conductor and

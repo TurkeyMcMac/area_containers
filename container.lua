@@ -17,6 +17,36 @@
     along with area_containers. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
+--[[
+   OVERVIEW
+
+   A container node is associated with an inside chamber through its param1 and
+   param2. The active nodes in the chamber have the same params to map back to
+   the container. This relation is managed by relation.lua.
+
+   The container lets players teleport into its inside chamber. They can leave
+   similarly with the inside exit node.
+
+   Port nodes inside the chamber correspond to faces of the container. Pipeworks
+   tubes can pass items through the ports. A mesecons signal can conduct between
+   the horizontal container faces and the ports.
+
+   Digilines messages can pass unaltered between the container and the digiline
+   node inside.
+
+   The container cannot be broken until it is empty of nodes and objects. While
+   the inside's block is active, a special object counter node continuously
+   tallies the objects so that the number can be checked when one attempts to
+   break the container.
+
+   This file sets various things in the mod namespace to communicate with
+   nodes.lua. For example, area_containers.<node-name> will be merged into the
+   definition of <node-name>, where <node-name> is e.g. "container".
+]]
+
+-- Gets a node. If get_node fails because the position is not loaded, the
+-- position is loaded and get_node is again tried. If this fails, a table is
+-- returned with name = "ignore".
 local function get_node_maybe_load(pos)
 	local node = minetest.get_node_or_nil(pos)
 	if node then return node end
@@ -26,6 +56,9 @@ local function get_node_maybe_load(pos)
 	return minetest.get_node(pos) -- Might be "ignore"
 end
 
+-- Updates the stored count of non-player objects associated with the inside.
+-- If the block is not active, the objects can't be counted, and nil is
+-- returned. Otherwise, the number of non-player objects is returned.
 local function update_non_player_object_count(inside_pos)
 	if minetest.compare_block_status(inside_pos, "active") then
 		local object_count = 0
@@ -44,48 +77,63 @@ local function update_non_player_object_count(inside_pos)
 	return nil
 end
 
+-- Gets the stored count of non-player objects associated with the inside.
 local function get_non_player_object_count(inside_pos)
 	local inside_meta = minetest.get_meta(inside_pos)
 	return inside_meta:get_int("area_containers:object_count")
 end
 
+-- The longest common prefix of all container node names.
 local container_name_prefix = "area_containers:container_"
 
+-- The offsets of the exit and digiline nodes from the inside position
+-- (the chamber wall position with the lowest x, y, and z.)
 local exit_offset = vector.new(0, 2, 1)
 local digiline_offset = vector.new(3, 0, 3)
 
+-- A mapping from port IDs to offsets from the inside position.
 local port_offsets = {
 	nx = vector.new(0, 2, 4), pz = vector.new(0, 2, 6),
 	px = vector.new(0, 2, 8), nz = vector.new(0, 2, 10),
 	py = vector.new(0, 2, 12), ny = vector.new(0, 2, 14),
 }
+-- A mapping from port IDs to unit vectors encoding the directions the
+-- corresponding outside ports face.
 local port_dirs = {
 	nx = vector.new(-1, 0, 0), pz = vector.new(0, 0, 1),
 	px = vector.new(1, 0, 0), nz = vector.new(0, 0, -1),
 	py = vector.new(0, 1, 0), ny = vector.new(0, -1, 0),
 }
+-- The list of horizontal port IDs in the order they appear inside,
+-- left to right.
 local port_ids_horiz = {"nx", "pz", "px", "nz"}
 
+-- The longest common prefix of all port node names.
 local port_name_prefix = "area_containers:port_"
 
+-- Maps a port node name to the corresponding port ID.
 local function get_port_id_from_name(node_name)
 	return string.sub(node_name,
 		#port_name_prefix + 1, #port_name_prefix + 2)
 end
 
-
+-- Sets up the non-player object counter node at inside_pos. The params encode
+-- the relation.
 local function set_up_object_counter(param1, param2, inside_pos)
 	-- Swap the node to keep the relation metadata:
 	minetest.swap_node(inside_pos, {
 		name = "area_containers:object_counter",
 		param1 = param1, param2 = param2,
 	})
+	-- Reset the count, just in case:
 	local meta = minetest.get_meta(inside_pos)
 	meta:set_int("area_containers:object_count", 0)
+	-- The node checks for objects periodically when active:
 	local timer = minetest.get_node_timer(inside_pos)
 	timer:start(1)
 end
 
+-- Sets up the exit node near inside_pos. The params encode the relation.
 local function set_up_exit(param1, param2, inside_pos)
 	local pos = vector.add(inside_pos, exit_offset)
 	minetest.set_node(pos, {
@@ -96,6 +144,7 @@ local function set_up_exit(param1, param2, inside_pos)
 	meta:set_string("infotext", "Exit")
 end
 
+-- Sets up the digiline node near inside_pos. The params encode the relation.
 local function set_up_digiline(param1, param2, inside_pos)
 	local pos = vector.add(inside_pos, digiline_offset)
 	minetest.set_node(pos, {
@@ -104,6 +153,7 @@ local function set_up_digiline(param1, param2, inside_pos)
 	})
 end
 
+-- Sets up the port nodes near inside_pos. The params encode the relation.
 local function set_up_ports(param1, param2, inside_pos)
 	for id, offset in pairs(port_offsets) do
 		local pos = vector.add(inside_pos, offset)
@@ -114,8 +164,11 @@ local function set_up_ports(param1, param2, inside_pos)
 	end
 end
 
+-- Creats a chamber with all the necessary nodes related to container_pos
+-- through param1 and param2.
 local function construct_inside(container_pos, param1, param2)
 	local inside_pos = area_containers.get_related_inside(param1, param2)
+	-- The min and max provide the guidelines for the walls:
 	local min_pos = inside_pos
 	local max_pos = vector.add(min_pos, 15)
 
@@ -126,6 +179,7 @@ local function construct_inside(container_pos, param1, param2)
 		MaxEdge = max_edge,
 	}
 
+	-- Make the walls:
 	local data = vm:get_data()
 	local c_air = minetest.get_content_id("air")
 	local c_wall = minetest.get_content_id("area_containers:wall")
@@ -145,7 +199,9 @@ local function construct_inside(container_pos, param1, param2)
 	vm:set_data(data)
 	vm:write_to_map(true)
 
+	-- Relate the container position:
 	area_containers.set_related_container(param1, param2, container_pos)
+	-- Set up the special nodes:
 	set_up_object_counter(param1, param2, inside_pos)
 	set_up_exit(param1, param2, inside_pos)
 	set_up_digiline(param1, param2, inside_pos)
@@ -154,7 +210,8 @@ end
 
 area_containers.container = {}
 
--- There are 16 combinations of the horizontal sides, each with its own name:
+-- The 16 container node names counting up from off to on in binary. The bits
+-- from most to least significant are: +X, -X, +Z, -Z.
 area_containers.all_container_states = {}
 local all_container_variants = {
 	"off", "0001", "0010", "0011", "0100", "0101", "0110", "0111",
@@ -165,12 +222,14 @@ for i, variant in ipairs(all_container_variants) do
 		container_name_prefix .. variant
 end
 
+-- Relates an inside to the container and sets up the inside.
 function area_containers.container.on_construct(pos)
 	local node = get_node_maybe_load(pos)
 	local param1 = node.param1
 	local param2 = node.param2
 	if param1 ~= 0 or param2 ~= 0 then
-		-- The node probably moved.
+		-- If the relation is set, the container was probably moved by
+		-- a piston or something.
 		if area_containers.reclaim_relation(param1, param2) then
 			area_containers.set_related_container(param1, param2,
 				pos)
@@ -204,14 +263,16 @@ function area_containers.container.on_construct(pos)
 	end
 end
 
+-- Frees the inside related to the container.
 function area_containers.container.on_destruct(pos)
-	-- Only free properly allocated containers:
+	-- Only free properly allocated containers (with relation set):
 	local node = get_node_maybe_load(pos)
 	if node.param1 ~= 0 or node.param2 ~= 0 then
 		area_containers.free_relation(node.param1, node.param2)
 	end
 end
 
+-- Teleports the player into the container.
 function area_containers.container.on_rightclick(pos, node, clicker)
 	if clicker and minetest.is_player(clicker) then
 		local inside_pos = area_containers.get_related_inside(
@@ -226,6 +287,8 @@ function area_containers.container.on_rightclick(pos, node, clicker)
 	end
 end
 
+-- Returns whether there are any nodes or objects in the container.
+-- The object count might not be 100% accurate if the container is unloaded.
 function area_containers.container_is_empty(pos, node)
 	node = node or get_node_maybe_load(pos)
 	local name_prefix = string.sub(node.name, 1, #container_name_prefix)
@@ -280,6 +343,7 @@ area_containers.container.digiline = {
 	receptor = {},
 }
 
+-- Forwards messages to the inside.
 function area_containers.container.digiline.effector.action(pos, node,
 		channel, msg)
 	local inside_pos = area_containers.get_related_inside(
@@ -310,6 +374,7 @@ function area_containers.container.tube.insert_object(pos, node, stack, dir,
 		owner)
 	local inside_pos = area_containers.get_related_inside(
 		node.param1, node.param2)
+	-- The incoming direction is opposite to the direction the port faces:
 	local port_id = "nx"
 	if dir.x < 0 then
 		port_id = "px"
@@ -330,14 +395,16 @@ function area_containers.container.tube.insert_object(pos, node, stack, dir,
 end
 
 if minetest.global_exists("pipeworks") then
+	-- For updating tube connections.
 	area_containers.container.after_place_node = pipeworks.after_place
 	area_containers.container.after_dig_node = pipeworks.after_dig
 end
 
+-- A container is a conductor to its insides. The position of its insides can
+-- be determined from param1 and param2.
 area_containers.container.mesecons = {conductor = {
 	states = area_containers.all_container_states,
 }}
-
 local function container_rules_add_port(rules, port_id, self_pos, inside_pos)
 	local port_pos = vector.add(inside_pos, port_offsets[port_id])
 	local offset_to_port = vector.subtract(port_pos, self_pos)
@@ -381,6 +448,7 @@ end
 
 area_containers.exit = {}
 
+-- Teleports the player out of the container.
 function area_containers.exit.on_rightclick(pos, node, clicker)
 	if clicker and minetest.is_player(clicker) then
 		-- Update the count before the block is deactivated:
@@ -404,6 +472,7 @@ area_containers.digiline = {
 	}
 }
 
+-- Forwards digiline messages to the container.
 function area_containers.digiline.digiline.effector.action(pos, node,
 		channel, msg)
 	local container_pos =
@@ -446,6 +515,7 @@ function area_containers.port.tube.insert_object(pos, node, stack, dir, owner)
 	return ItemStack() -- All inserted.
 end
 
+-- The ports conduct in a similar way to the container, using param1 and param2.
 local function get_port_rules(node)
 	local rules = {
 		{x = 1, y = -1, z = 0},

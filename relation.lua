@@ -18,6 +18,18 @@
     along with area_containers. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
+--[[
+  OVERVIEW
+
+  There must be a mapping between the insides of containers and the container
+  nodes themselves. A "relation" encodes an inside position and a container
+  position. The inside position is the minimum coordinate of the inside chamber.
+  The container position is stored in the metadata at the inside position, and
+  may or may not be set. A relation consists of param1 and param2 values that
+  can be stored in a node. At least one parameter will be nonzero. Relations
+  are allocated and freed using functions in this file.
+]]
+
 -- Settings --
 
 local DEFAULT_INSIDE_SPACING = 16 * area_containers.settings.spacing_blocks
@@ -48,21 +60,30 @@ local function get_or_default(key, default)
 	end
 end
 
+-- The period between insides measured in node lengths.
 local INSIDE_SPACING = get_or_default("INSIDE_SPACING", DEFAULT_INSIDE_SPACING)
+-- The y value of all inside positions.
 local Y_LEVEL = get_or_default("Y_LEVEL", DEFAULT_Y_LEVEL)
+-- The minimum x and z values of all inside positions.
 local X_BASE = get_or_default("X_BASE", DEFAULT_X_BASE)
 local Z_BASE = get_or_default("Z_BASE", DEFAULT_Z_BASE)
+-- The next param values to be allocated if no other free spaces are available.
 local param1_next = get_or_default("param1_next", 1) -- Leave (0, 0) a sentinel.
 local param2_next = get_or_default("param2_next", 0)
 
-local relation_containers = {}
+-- Container position caching --
 
--- Parameter Interpretation --
-
+-- Converts the parameters into a cache index.
 local function get_index(param1, param2)
 	return param1 + param2 * 256
 end
 
+-- The cache of container positions.
+local relation_containers = {}
+
+-- Parameter Interpretation --
+
+-- Returns the related inside position (the minimum coordinate of the chamber.)
 local function get_related_inside(param1, param2)
 	return vector.new(
 		X_BASE + param1 * INSIDE_SPACING,
@@ -72,7 +93,36 @@ local function get_related_inside(param1, param2)
 end
 area_containers.get_related_inside = get_related_inside
 
+-- Gets the related container position. Returns nil if it isn't set.
+function area_containers.get_related_container(param1, param2)
+	local idx = get_index(param1, param2)
+	local container_pos = relation_containers[idx]
+	if not container_pos then
+		local inside_pos = get_related_inside(param1, param2)
+		local inside_meta = minetest.get_meta(inside_pos)
+		container_pos = minetest.string_to_pos(
+			inside_meta:get_string("area_containers:container_pos"))
+		relation_containers[idx] = container_pos
+	end
+	return container_pos
+end
+
+-- Sets the related container, or unsets it if container_pos is nil.
+function area_containers.set_related_container(param1, param2, container_pos)
+	local inside_pos = get_related_inside(param1, param2)
+	local inside_meta = minetest.get_meta(inside_pos)
+	inside_meta:set_string("area_containers:container_pos",
+		container_pos and minetest.pos_to_string(container_pos) or "")
+	relation_containers[get_index(param1, param2)] = container_pos
+end
+
 -- Parameter String Encoding and Decoding --
+
+--[[
+  The storage key "freed" is a string representation of a stack. It consists of
+  concatenated fixed-length records representing parameter pairs. Each record is
+  PARAMS_STRING_LENGTH characters long.
+]]
 
 -- Set up the bi-directional mapping between characters and segments of 6 bits:
 local seg2byte = {string.byte(
@@ -105,21 +155,26 @@ local function string_to_params(str)
 	return param1, param2
 end
 
--- Allocation and Deallocation --
+-- Allocation and Deallocation (with No Map Alteration) --
 
+-- Returns a newly allocated param1, param2. Returns nil, nil if there is no
+-- space left.
 function area_containers.alloc_relation()
 	local param1, param2
 	local freed = storage:get_string("freed")
 	if #freed >= PARAMS_STRING_LENGTH then
+		-- Pop a space off the freed stack if one is available.
 		param1, param2 = string_to_params(
 			string.sub(freed, -PARAMS_STRING_LENGTH))
 		freed = string.sub(freed, 1, #freed - PARAMS_STRING_LENGTH)
 		storage:set_string("freed", freed)
 	elseif param2_next < 256 then
+		-- Add a new space to the pool if no space is available.
 		param1 = param1_next
 		param2 = param2_next
 		param1_next = param1_next + 1
 		if param1_next >= 256 then
+			-- Wrap around.
 			param1_next = 0
 			param2_next = param2_next + 1
 		end
@@ -129,26 +184,33 @@ function area_containers.alloc_relation()
 	return param1, param2
 end
 
+-- Adds the relation to the freed list to be reused later.
 function area_containers.free_relation(param1, param2)
+	-- Push the params:
 	local freed = storage:get_string("freed")
 	freed = freed .. params_to_string(param1, param2)
 	storage:set_string("freed", freed)
 	relation_containers[get_index(param1, param2)] = nil
 end
 
+-- Tries to reclaim the specific relation from the freed list. Returned is
+-- whether the relation could be reclaimed and removed from the freed list.
 function area_containers.reclaim_relation(param1, param2)
 	local find_params = params_to_string(param1, param2)
 	local freed = storage:get_string("freed")
+	-- A special case for when the reclaimed is the most recently freed:
 	if string.sub(freed, -PARAMS_STRING_LENGTH) == find_params then
 		freed = string.sub(freed, 1, #freed - PARAMS_STRING_LENGTH)
 		storage:set_string("freed", freed)
 		return true
 	end
+	-- Search through all the other records backward (more recent first):
 	for i = 1, #freed - PARAMS_STRING_LENGTH + 1, PARAMS_STRING_LENGTH do
 		local start = -i - PARAMS_STRING_LENGTH + 1
 		local finish = -i
 		local check_params = string.sub(freed, start, finish)
 		if check_params == find_params then
+			-- Found!
 			freed = string.sub(freed, 1, start - 1) ..
 				string.sub(freed, finish + 1)
 			storage:set_string("freed", freed)
@@ -156,28 +218,4 @@ function area_containers.reclaim_relation(param1, param2)
 		end
 	end
 	return false
-end
-
-
--- Related Container Handling --
-
-function area_containers.get_related_container(param1, param2)
-	local idx = get_index(param1, param2)
-	local container_pos = relation_containers[idx]
-	if not container_pos then
-		local inside_pos = get_related_inside(param1, param2)
-		local inside_meta = minetest.get_meta(inside_pos)
-		container_pos = minetest.string_to_pos(
-			inside_meta:get_string("area_containers:container_pos"))
-		relation_containers[idx] = container_pos
-	end
-	return container_pos
-end
-
-function area_containers.set_related_container(param1, param2, container_pos)
-	local inside_pos = get_related_inside(param1, param2)
-	local inside_meta = minetest.get_meta(inside_pos)
-	inside_meta:set_string("area_containers:container_pos",
-		container_pos and minetest.pos_to_string(container_pos) or "")
-	relation_containers[get_index(param1, param2)] = container_pos
 end
