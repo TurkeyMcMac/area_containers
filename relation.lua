@@ -30,6 +30,9 @@
   are allocated and freed using functions in this file.
 ]]
 
+-- Name the private namespace:
+local area_containers = ...
+
 -- Settings --
 
 local DEFAULT_INSIDE_SPACING = 16 * area_containers.settings.spacing_blocks

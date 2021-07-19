@@ -44,6 +44,9 @@
    definition of <node-name>, where <node-name> is e.g. "container".
 ]]
 
+-- Name the private namespace:
+local area_containers = ...
+
 -- Gets a node. If get_node fails because the position is not loaded, the
 -- position is loaded and get_node is again tried. If this fails, a table is
 -- returned with name = "ignore".

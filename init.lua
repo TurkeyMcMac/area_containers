@@ -18,7 +18,8 @@
     along with area_containers. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
-area_containers = {}
+-- This is a mod-private namespace for functions and stuff.
+local area_containers = {}
 
 area_containers.settings = {
 	y_level_blocks = tonumber(minetest.settings:get(
@@ -29,11 +30,14 @@ area_containers.settings = {
 		"area_containers_enable_crafts", true),
 }
 
-local modpath = minetest.get_modpath("area_containers")
-dofile(modpath .. "/crafts.lua")
-dofile(modpath .. "/container.lua")
-dofile(modpath .. "/nodes.lua")
-dofile(modpath .. "/relation.lua")
+local function run_file(filename)
+	local path = minetest.get_modpath("area_containers") .. "/" .. filename
+	return assert(loadfile(path))(area_containers)
+end
+run_file("crafts.lua")
+run_file("container.lua")
+run_file("nodes.lua")
+run_file("relation.lua")
 
 area_containers.register_nodes()
 

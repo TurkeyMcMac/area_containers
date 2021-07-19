@@ -17,6 +17,8 @@
     along with area_containers. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
+-- Name the private namespace:
+local area_containers = ...
 
 function area_containers.register_crafts()
 	if minetest.registered_craftitems["default:steel_ingot"] and

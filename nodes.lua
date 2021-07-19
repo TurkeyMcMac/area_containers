@@ -18,6 +18,9 @@
     along with area_containers. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
+-- Name the private namespace:
+local area_containers = ...
+
 local mesecon_on_color = "#FCFF00"
 local mesecon_off_color = "#8A8C00"
 local digiline_color = "#4358C0"
