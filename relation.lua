@@ -26,8 +26,9 @@
   position. The inside position is the minimum coordinate of the inside chamber.
   The container position is stored in the metadata at the inside position, and
   may or may not be set. A relation consists of param1 and param2 values that
-  can be stored in a node. At least one parameter will be nonzero. Relations
-  are allocated and freed using functions in this file.
+  can be stored in a node. Relations are allocated and freed using functions in
+  this file. An allocated parameter pair will never have both parameters be 0,
+  but all possible parameter combinations are considered valid relations. 
 ]]
 
 -- Name the private namespace:
