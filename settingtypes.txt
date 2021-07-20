@@ -24,3 +24,6 @@ area_containers_spacing_blocks (Inside spacing) int 15 1 15
 
 # The Y coordinate of the bottom face of all inside chambers (chambers linked to area containers,) measured in multiples of the block size (16.) This cannot be changed once the world is generated.
 area_containers_y_level_blocks (Inside Y-level) int 1931 -1932 1931
+
+# The maximum size of the container position cache used to quickly relate inside chambers to container nodes.
+area_containers_max_cache_size (Maximum container cache size) int 256 1 65536

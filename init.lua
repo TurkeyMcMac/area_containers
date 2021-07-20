@@ -28,6 +28,8 @@ area_containers.settings = {
 		"area_containers_spacing_blocks") or 15),
 	enable_crafts = minetest.settings:get_bool(
 		"area_containers_enable_crafts", true),
+	max_cache_size = tonumber(minetest.settings:get(
+		"area_containers_max_cache_size") or 256),
 }
 
 local function run_file(filename)

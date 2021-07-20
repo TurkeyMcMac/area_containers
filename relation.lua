@@ -39,6 +39,7 @@ local DEFAULT_INSIDE_SPACING = 16 * area_containers.settings.spacing_blocks
 local DEFAULT_Y_LEVEL = 16 * area_containers.settings.y_level_blocks
 local DEFAULT_X_BASE = -30896
 local DEFAULT_Z_BASE = -30896
+local MAX_CONTAINER_CACHE_SIZE = area_containers.settings.max_cache_size
 
 -- Check that the parameters are within bounds:
 local mapgen_limit_rounded = 16 * math.floor(
@@ -76,13 +77,31 @@ local param2_next = get_or_default("param2_next", 0)
 
 -- Container position caching --
 
--- Converts the parameters into a cache index.
-local function get_index(param1, param2)
+-- The cache of container positions.
+local cached_containers = {}
+-- The number of entries.
+local container_cache_size = 0
+
+local function get_cache_index(param1, param2)
 	return param1 + param2 * 256
 end
 
--- The cache of container positions.
-local relation_containers = {}
+local function cache_container(index, pos)
+	local old_value = cached_containers[index]
+	if pos and not old_value then
+		-- Add.
+		if container_cache_size >= MAX_CONTAINER_CACHE_SIZE then
+			-- Just purge everything and start again.
+			cached_containers = {}
+			container_cache_size = 0
+		end
+		container_cache_size = container_cache_size + 1
+	elseif old_value and not pos then
+		-- Remove.
+		container_cache_size = container_cache_size - 1
+	end
+	cached_containers[index] = pos
+end
 
 -- Parameter Interpretation --
 
@@ -98,14 +117,14 @@ area_containers.get_related_inside = get_related_inside
 
 -- Gets the related container position. Returns nil if it isn't set.
 function area_containers.get_related_container(param1, param2)
-	local idx = get_index(param1, param2)
-	local container_pos = relation_containers[idx]
+	local idx = get_cache_index(param1, param2)
+	local container_pos = cached_containers[idx]
 	if not container_pos then
 		local inside_pos = get_related_inside(param1, param2)
 		local inside_meta = minetest.get_meta(inside_pos)
 		container_pos = minetest.string_to_pos(
 			inside_meta:get_string("area_containers:container_pos"))
-		relation_containers[idx] = container_pos
+		cache_container(idx, container_pos)
 	end
 	return container_pos
 end
@@ -116,7 +135,7 @@ function area_containers.set_related_container(param1, param2, container_pos)
 	local inside_meta = minetest.get_meta(inside_pos)
 	inside_meta:set_string("area_containers:container_pos",
 		container_pos and minetest.pos_to_string(container_pos) or "")
-	relation_containers[get_index(param1, param2)] = container_pos
+	cache_container(get_cache_index(param1, param2), container_pos)
 end
 
 -- Parameter String Encoding and Decoding --
@@ -193,7 +212,6 @@ function area_containers.free_relation(param1, param2)
 	local freed = storage:get_string("freed")
 	freed = freed .. params_to_string(param1, param2)
 	storage:set_string("freed", freed)
-	relation_containers[get_index(param1, param2)] = nil
 end
 
 -- Tries to reclaim the specific relation from the freed list. Returned is
