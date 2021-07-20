@@ -59,11 +59,18 @@ local function get_node_maybe_load(pos)
 	return minetest.get_node(pos) -- Might be "ignore"
 end
 
+-- Gets the stored count of non-player objects associated with the inside.
+local function get_non_player_object_count(inside_pos)
+	local inside_meta = minetest.get_meta(inside_pos)
+	return inside_meta:get_int("area_containers:object_count")
+end
+
 -- Updates the stored count of non-player objects associated with the inside.
--- If the block is not active, the objects can't be counted, and nil is
--- returned. Otherwise, the number of non-player objects is returned.
+-- The new count is returned. This should only be called for active blocks.
 local function update_non_player_object_count(inside_pos)
-	if minetest.compare_block_status(inside_pos, "active") then
+	-- Try to limit updates to active blocks if possible:
+	if not minetest.compare_block_status or
+	   minetest.compare_block_status(inside_pos, "active") then
 		local object_count = 0
 		local objects_inside = minetest.get_objects_in_area(
 			inside_pos, vector.add(inside_pos, 15))
@@ -77,13 +84,7 @@ local function update_non_player_object_count(inside_pos)
 			object_count)
 		return object_count
 	end
-	return nil
-end
-
--- Gets the stored count of non-player objects associated with the inside.
-local function get_non_player_object_count(inside_pos)
-	local inside_meta = minetest.get_meta(inside_pos)
-	return inside_meta:get_int("area_containers:object_count")
+	return get_non_player_object_count(inside_pos)
 end
 
 -- The longest common prefix of all container node names.
