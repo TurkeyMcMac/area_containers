@@ -38,8 +38,8 @@ local area_containers = ...
 
 local DEFAULT_INSIDE_SPACING = 16 * area_containers.settings.spacing_blocks
 local DEFAULT_Y_LEVEL = 16 * area_containers.settings.y_level_blocks
-local DEFAULT_X_BASE = -30896
-local DEFAULT_Z_BASE = -30896
+local DEFAULT_X_BASE = -30608
+local DEFAULT_Z_BASE = -30608
 local MAX_CONTAINER_CACHE_SIZE = area_containers.settings.max_cache_size
 
 -- Check that the parameters are within bounds:
