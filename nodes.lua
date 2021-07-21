@@ -21,6 +21,8 @@
 -- Name the private namespace:
 local area_containers = ...
 
+local S = minetest.get_translator("area_containers")
+
 local mesecon_on_color = "#FCFF00"
 local mesecon_off_color = "#8A8C00"
 local digiline_color = "#4358C0"
@@ -86,7 +88,7 @@ function area_containers.register_nodes()
 	-- Register all the container nodes:
 	for i, name in ipairs(area_containers.all_container_states) do
 		local container_def = merged_table(area_containers.container, {
-			description = "Area container",
+			description = S("Area container"),
 			tiles = table.copy(container_tiles),
 			drop = area_containers.all_container_states[1],
 		})
@@ -124,14 +126,14 @@ function area_containers.register_nodes()
 		area_containers.all_container_states[1])
 
 	register_wall("wall", {
-		description = "Container wall",
+		description = S("Container wall"),
 		paramtype = "light",
 		light_source = minetest.LIGHT_MAX,
 		tiles = {"area_containers_wall.png"},
 	})
 
 	register_wall("exit", merged_table(area_containers.exit, {
-		description = "Container exit",
+		description = S("Container exit"),
 		tiles = {"area_containers_wall.png^area_containers_exit.png"},
 	}))
 
@@ -141,14 +143,14 @@ function area_containers.register_nodes()
 			wire_texture(digiline_color)
 	end
 	register_wall("digiline", merged_table(area_containers.digiline, {
-		description = "Container's digiline connection",
+		description = S("Container's digiline connection"),
 		tiles = {digiline_texture},
 	}))
 
 	-- Register all port node variants:
 	for variant, def in pairs(area_containers.all_port_variants) do
 		local full_def = merged_table(area_containers.port, def)
-		full_def.description = "Container's mesecon/tube connection"
+		full_def.description = S("Container's mesecon/tube connection")
 		local tile = "area_containers_wall.png"
 		local mesecons_spec = full_def.mesecons
 		if mesecons_spec and mesecon_maybe.state then
@@ -174,8 +176,8 @@ function area_containers.register_nodes()
 
 	register_wall("object_counter",
 		merged_table(area_containers.object_counter, {
-			description =
-				"Counter of non-player objects in a container",
+			description = S("Counter of non-player objects in " ..
+				"a container"),
 			tiles = {"area_containers_wall.png"},
 		})
 	)
