@@ -2,6 +2,8 @@
 
 ![The outside and inside of an area container](screenshot.png)
 
+[![ContentDB](https://content.minetest.net/packages/jwmhjwmh/area_containers/shields/title/)](https://content.minetest.net/packages/jwmhjwmh/area_containers/)
+
 This is a mod for [Minetest][1]. It implements an "area container," that is,
 a node that holds an area in which you can walk around and build stuff. The
 structures in the container can communicate with the outside using
