@@ -30,6 +30,7 @@
    Port nodes inside the chamber correspond to faces of the container. Pipeworks
    tubes can pass items through the ports. A mesecons signal can conduct between
    the horizontal container faces and the ports.
+   NOTE: port nodes are assumed to be on the -X side of the chamber.
 
    Digilines messages can pass unaltered between the container and the digiline
    node inside.
@@ -87,6 +88,22 @@ local function update_non_player_object_count(inside_pos)
 	return get_non_player_object_count(inside_pos)
 end
 
+-- Determines whether a tube item can be inserted at the position going in the
+-- direction by checking if there's a receptacle in that direction. This works
+-- pretty much like the filter injector in Pipeworks does.
+local function can_insert(to_pos, dir)
+	local toward_pos = vector.round(vector.add(to_pos, dir))
+	local toward_node = get_node_maybe_load(toward_pos)
+	if not toward_node or
+	   not minetest.registered_nodes[toward_node.name] then
+		return false
+	end
+	return minetest.get_item_group(toward_node.name, "tube") == 1 or
+		minetest.get_item_group(toward_node.name, "tubedevice") == 1 or
+		minetest.get_item_group(toward_node.name, "tubedevice_receiver")
+			== 1
+end
+
 -- The longest common prefix of all container node names.
 local container_name_prefix = "area_containers:container_"
 
@@ -119,6 +136,24 @@ local port_name_prefix = "area_containers:port_"
 local function get_port_id_from_name(node_name)
 	return string.sub(node_name,
 		#port_name_prefix + 1, #port_name_prefix + 2)
+end
+
+-- Maps a tube output direction parallel to exactly one axis to the best guess
+-- of the port ID.
+local function get_port_id_from_direction(dir)
+	if dir.x > 0 then
+		return "px"
+	elseif dir.x < 0 then
+		return "nx"
+	elseif dir.z > 0 then
+		return "pz"
+	elseif dir.z < 0 then
+		return "nz"
+	elseif dir.y > 0 then
+		return "py"
+	else
+		return "ny"
+	end
 end
 
 -- Sets up the non-player object counter node at inside_pos. The params encode
@@ -370,27 +405,20 @@ area_containers.container.tube = {
 	},
 }
 
-function area_containers.container.tube.can_insert(pos, node)
-	return node.param1 ~= 0 or node.param2 ~= 0
+function area_containers.container.tube.can_insert(pos, node, stack, dir)
+	if node.param1 == 0 and node.param2 == 0 then return false end
+	local inside_pos = area_containers.get_related_inside(
+		node.param1, node.param2)
+	local port_id = get_port_id_from_direction(vector.multiply(dir, -1))
+	local port_pos = vector.add(inside_pos, port_offsets[port_id])
+	return can_insert(port_pos, vector.new(1, 0, 0))
 end
 
 function area_containers.container.tube.insert_object(pos, node, stack, dir,
 		owner)
 	local inside_pos = area_containers.get_related_inside(
 		node.param1, node.param2)
-	-- The incoming direction is opposite to the direction the port faces:
-	local port_id = "nx"
-	if dir.x < 0 then
-		port_id = "px"
-	elseif dir.z > 0 then
-		port_id = "nz"
-	elseif dir.z < 0 then
-		port_id = "pz"
-	elseif dir.y > 0 then
-		port_id = "ny"
-	elseif dir.y < 0 then
-		port_id = "py"
-	end
+	local port_id = get_port_id_from_direction(vector.multiply(dir, -1))
 	local port_pos = vector.add(inside_pos, port_offsets[port_id])
 	local out_speed = math.max(vector.length(dir), 0.1)
 	local out_vel = vector.new(out_speed, 0, 0)
@@ -493,17 +521,18 @@ area_containers.port = {
 	},
 	tube = {
 		connect_sides = {
-			left = 1, right = 1,
-			back = 1, front = 1,
-			bottom = 1, top = 1,
+			right = 1, -- Connect to +X.
 		},
 	},
 }
 
 
 function area_containers.port.tube.can_insert(pos, node)
-	return area_containers.get_related_container(node.param1, node.param2)
-		~= nil
+	local container_pos =
+		area_containers.get_related_container(node.param1, node.param2)
+	if not container_pos then return false end
+	local id = get_port_id_from_name(node.name)
+	return can_insert(container_pos, port_dirs[id])
 end
 
 function area_containers.port.tube.insert_object(pos, node, stack, dir, owner)
