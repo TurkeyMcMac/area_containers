@@ -285,7 +285,7 @@ function area_containers.container.on_rightclick(pos, node, clicker)
 			node.param1, node.param2)
 		-- Make sure the player will be able to get back:
 		if self_pos and vector.equals(pos, self_pos) then
-			local dest = vector.add(inside_pos, 1)
+			local dest = vector.offset(inside_pos, 1, 0.6, 1)
 			clicker:set_pos(dest)
 		end
 	end
@@ -458,7 +458,7 @@ function area_containers.exit.on_rightclick(pos, node, clicker)
 		local container_pos = area_containers.get_related_container(
 			node.param1, node.param2)
 		if container_pos then
-			local dest = vector.offset(container_pos, 0, 1, 0)
+			local dest = vector.offset(container_pos, 0, 0.6, 0)
 			clicker:set_pos(dest)
 		end
 
