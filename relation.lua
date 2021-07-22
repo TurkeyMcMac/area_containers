@@ -36,7 +36,8 @@ local area_containers = ...
 
 -- Settings --
 
-local DEFAULT_INSIDE_SPACING = 16 * area_containers.settings.spacing_blocks
+-- The positioning settings should be multiples of 16.
+local DEFAULT_INSIDE_SPACING = 240
 local DEFAULT_Y_LEVEL = 16 * area_containers.settings.y_level_blocks
 local DEFAULT_X_BASE = -30608
 local DEFAULT_Z_BASE = -30608
