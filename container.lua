@@ -36,9 +36,10 @@
    node inside.
 
    The container cannot be broken until it is empty of nodes and objects. While
-   the inside's block is active, a special object counter node continuously
+   the inside's block is active, a special "object counter" node continuously
    tallies the objects so that the number can be checked when one attempts to
-   break the container.
+   break the container. Despite its name, the object counter now also performs
+   the function of updating internal light according to the wall_light setting.
 
    This file sets various things in the mod namespace to communicate with
    nodes.lua. For example, area_containers.<node-name> will be merged into the
@@ -88,6 +89,19 @@ local function update_non_player_object_count(inside_pos)
 		return object_count
 	end
 	return get_non_player_object_count(inside_pos)
+end
+
+local desired_wall_light = area_containers.settings.wall_light
+
+-- Updates the lighting to the desired setting for the chamber at inside_pos.
+local function update_inside_lighting(inside_pos)
+	local inside_meta = minetest.get_meta(inside_pos)
+	local wall_light = inside_meta:get("area_containers:wall_light")
+	if not wall_light or tonumber(wall_light) ~= desired_wall_light then
+		minetest.fix_light(inside_pos, vector.add(inside_pos, 15))
+		inside_meta:set_int("area_containers:wall_light",
+			desired_wall_light)
+	end
 end
 
 -- Determines whether a tube item can be inserted at the position going in the
@@ -158,7 +172,7 @@ local function get_port_id_from_direction(dir)
 	end
 end
 
--- Sets up the non-player object counter node at inside_pos. The params encode
+-- Sets up the "object counter" controller node at inside_pos. The params encode
 -- the relation.
 local function set_up_object_counter(param1, param2, inside_pos)
 	-- Swap the node to keep the relation metadata:
@@ -166,9 +180,10 @@ local function set_up_object_counter(param1, param2, inside_pos)
 		name = "area_containers:object_counter",
 		param1 = param1, param2 = param2,
 	})
-	-- Reset the count, just in case:
+	-- Reset the periodically updated data, just in case:
 	local meta = minetest.get_meta(inside_pos)
 	meta:set_int("area_containers:object_count", 0)
+	meta:set_int("area_containers:wall_light", desired_wall_light)
 	-- The node checks for objects periodically when active:
 	local timer = minetest.get_node_timer(inside_pos)
 	timer:start(1)
@@ -600,5 +615,6 @@ area_containers.object_counter = {}
 function area_containers.object_counter.on_timer(pos, timer)
 	-- The counter's position is also the inside_pos:
 	update_non_player_object_count(pos)
+	update_inside_lighting(pos)
 	return true
 end

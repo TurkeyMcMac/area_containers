@@ -125,10 +125,11 @@ function area_containers.register_nodes()
 	minetest.register_alias("area_containers:container",
 		area_containers.all_container_states[1])
 
+	local wall_light = area_containers.settings.wall_light
 	register_wall("wall", {
 		description = S("Container wall"),
-		paramtype = "light",
-		light_source = minetest.LIGHT_MAX,
+		paramtype = wall_light > 0 and "light" or "none",
+		light_source = math.min(wall_light, minetest.LIGHT_MAX),
 		tiles = {"area_containers_wall.png"},
 	})
 
@@ -176,8 +177,8 @@ function area_containers.register_nodes()
 
 	register_wall("object_counter",
 		merged_table(area_containers.object_counter, {
-			description = S("Counter of non-player objects in " ..
-				"a container"),
+			description =
+				S("Misc. controlling node for a container"),
 			tiles = {"area_containers_wall.png"},
 		})
 	)
