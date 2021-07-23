@@ -104,6 +104,14 @@ local function update_inside_lighting(inside_pos)
 	end
 end
 
+-- The connection rules (relative positions to link to) for the digiline node.
+local digiline_node_rules = {
+	{x = 1, y = 1, z = 0},
+	{x = 0, y = 1, z = 1},
+	{x = -1, y = 1, z = 0},
+	{x = 0, y = 1, z = -1},
+}
+
 -- Determines whether a tube item can be inserted at the position going in the
 -- direction by checking if there's a receptacle in that direction. This works
 -- pretty much like the filter injector in Pipeworks does.
@@ -405,8 +413,7 @@ function area_containers.container.digiline.effector.action(pos, node,
 	local inside_pos = area_containers.get_related_inside(
 		node.param1, node.param2)
 	local digiline_pos = vector.add(inside_pos, digiline_offset)
-	digiline:receptor_send(digiline_pos, digiline.rules.default,
-		channel, msg)
+	digiline:receptor_send(digiline_pos, digiline_node_rules, channel, msg)
 end
 
 area_containers.container.groups = {
@@ -516,8 +523,8 @@ end
 
 area_containers.digiline = {
 	digiline = {
-		effector = {},
-		receptor = {},
+		effector = {rules = digiline_node_rules},
+		receptor = {rules = digiline_node_rules},
 	}
 }
 
