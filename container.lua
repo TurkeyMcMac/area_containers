@@ -338,12 +338,12 @@ end
 
 -- Teleports the player into the container.
 function area_containers.container.on_rightclick(pos, node, clicker)
-	if clicker and minetest.is_player(clicker) then
+	if clicker then
 		local inside_pos = area_containers.get_related_inside(
 			node.param1, node.param2)
 		local self_pos = area_containers.get_related_container(
 			node.param1, node.param2)
-		-- Make sure the player will be able to get back:
+		-- Make sure the clicker will be able to get back:
 		if self_pos and vector.equals(pos, self_pos) then
 			local dest = vector.offset(inside_pos, 1, 0.6, 1)
 			clicker:set_pos(dest)
@@ -509,7 +509,7 @@ function area_containers.exit.on_rightclick(pos, node, clicker)
 	local inside_pos =
 		area_containers.get_related_inside(node.param1, node.param2)
 	local clicker_pos = clicker and clicker:get_pos()
-	if clicker_pos and minetest.is_player(clicker) and
+	if clicker_pos and
 	   clicker_pos.x > inside_pos.x and
 	   clicker_pos.x < inside_pos.x + 15 and
 	   clicker_pos.y > inside_pos.y and
@@ -524,7 +524,9 @@ function area_containers.exit.on_rightclick(pos, node, clicker)
 		end
 
 		-- Update the count before the block is deactivated:
-		update_non_player_object_count(inside_pos)
+		if minetest.is_player(clicker) then
+			update_non_player_object_count(inside_pos)
+		end
 	end
 end
 
