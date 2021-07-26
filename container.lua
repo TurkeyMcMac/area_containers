@@ -506,7 +506,16 @@ area_containers.exit = {}
 
 -- Teleports the player out of the container.
 function area_containers.exit.on_rightclick(pos, node, clicker)
-	if clicker and minetest.is_player(clicker) then
+	local inside_pos =
+		area_containers.get_related_inside(node.param1, node.param2)
+	local clicker_pos = clicker and clicker:get_pos()
+	if clicker_pos and minetest.is_player(clicker) and
+	   clicker_pos.x > inside_pos.x and
+	   clicker_pos.x < inside_pos.x + 15 and
+	   clicker_pos.y > inside_pos.y and
+	   clicker_pos.y < inside_pos.y + 15 and
+	   clicker_pos.z > inside_pos.z and
+	   clicker_pos.z < inside_pos.z + 15 then
 		local container_pos = area_containers.get_related_container(
 			node.param1, node.param2)
 		if container_pos then
@@ -515,8 +524,6 @@ function area_containers.exit.on_rightclick(pos, node, clicker)
 		end
 
 		-- Update the count before the block is deactivated:
-		local inside_pos = area_containers.get_related_inside(
-			node.param1, node.param2)
 		update_non_player_object_count(inside_pos)
 	end
 end

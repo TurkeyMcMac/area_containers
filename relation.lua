@@ -24,11 +24,13 @@
   There must be a mapping between the insides of containers and the container
   nodes themselves. A "relation" encodes an inside position and a container
   position. The inside position is the minimum coordinate of the inside chamber.
-  The container position is stored in the metadata at the inside position, and
-  may or may not be set. A relation consists of param1 and param2 values that
-  can be stored in a node. Relations are allocated and freed using functions in
-  this file. An allocated parameter pair will never have both parameters be 0,
-  but all possible parameter combinations are considered valid relations. 
+  Chambers are block-aligned, and are pretty much assumed to fill exactly one
+  block. The container position is stored in the metadata at the inside
+  position, and may or may not be set. A relation consists of param1 and param2
+  values that can be stored in a node. Relations are allocated and freed using
+  functions in this file. An allocated/freed parameter pair must never have both
+  parameters be 0, but all possible parameter combinations are considered valid
+  relations. 
 ]]
 
 -- Name the private namespace:
@@ -116,6 +118,22 @@ local function get_related_inside(param1, param2)
 	)
 end
 area_containers.get_related_inside = get_related_inside
+
+-- Returns the two params associated with the position if it is a position that
+-- could be returned from get_related_inside, or two nil values otherwise.
+function area_containers.get_params_from_inside(inside_pos)
+        if inside_pos.y ~= Y_LEVEL then return nil, nil end
+        local param1 = (inside_pos.x - X_BASE) / INSIDE_SPACING
+        local param2 = (inside_pos.z - Z_BASE) / INSIDE_SPACING
+        if param1 >= 0 and param1 <= 255 and param2 >= 0 and param2 <= 255 and
+           param1 % 1 == 0 and param2 % 1 == 0 then
+                return param1, param2
+           end
+        return nil, nil
+end
+
+-- The actual Y-level (in nodes) of all inside positions (container bottoms.)
+area_containers.inside_y_level = Y_LEVEL
 
 -- Gets the related container position. Returns nil if it isn't set.
 function area_containers.get_related_container(param1, param2)
