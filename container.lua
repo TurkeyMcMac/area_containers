@@ -245,7 +245,7 @@ local function construct_inside(container_pos, param1, param2)
 
 	-- Make the walls:
 	local data = vm:get_data()
-	local c_air = minetest.get_content_id("air")
+	local c_air = minetest.CONTENT_AIR
 	local c_wall = minetest.get_content_id("area_containers:wall")
 	for z = min_pos.z, max_pos.z do
 		for y = min_pos.y, max_pos.y do
@@ -373,7 +373,7 @@ function area_containers.container_is_empty(pos, node)
 		MaxEdge = max_edge,
 	}
 	local data = vm:get_data()
-	local c_air = minetest.get_content_id("air")
+	local c_air = minetest.CONTENT_AIR
 	for z = min_pos.z, max_pos.z do
 		for y = min_pos.y, max_pos.y do
 			for x = min_pos.x, max_pos.x do
