@@ -88,7 +88,7 @@ function area_containers.register_nodes()
 	-- Register all the container nodes:
 	for i, name in ipairs(area_containers.all_container_states) do
 		local container_def = merged_table(area_containers.container, {
-			description = S("Area container"),
+			description = S("Area Container"),
 			tiles = table.copy(container_tiles),
 			drop = area_containers.all_container_states[1],
 		})
@@ -127,14 +127,14 @@ function area_containers.register_nodes()
 
 	local wall_light = area_containers.settings.wall_light
 	register_wall("wall", {
-		description = S("Container wall"),
+		description = S("Container Wall"),
 		paramtype = wall_light > 0 and "light" or "none",
 		light_source = math.min(wall_light, minetest.LIGHT_MAX),
 		tiles = {"area_containers_wall.png"},
 	})
 
 	register_wall("exit", merged_table(area_containers.exit, {
-		description = S("Container exit"),
+		description = S("Container Exit"),
 		tiles = {"area_containers_wall.png^area_containers_exit.png"},
 	}))
 
@@ -144,14 +144,14 @@ function area_containers.register_nodes()
 			wire_texture(digiline_color)
 	end
 	register_wall("digiline", merged_table(area_containers.digiline, {
-		description = S("Container's digiline connection"),
+		description = S("Container's Digiline Connection"),
 		tiles = {digiline_texture},
 	}))
 
 	-- Register all port node variants:
 	for variant, def in pairs(area_containers.all_port_variants) do
 		local full_def = merged_table(area_containers.port, def)
-		full_def.description = S("Container's mesecon/tube connection")
+		full_def.description = S("Container's Mesecon/Tube Connection")
 		local tile = "area_containers_wall.png"
 		local mesecons_spec = full_def.mesecons
 		if mesecons_spec and mesecon_maybe.state then
@@ -178,7 +178,7 @@ function area_containers.register_nodes()
 	register_wall("object_counter",
 		merged_table(area_containers.object_counter, {
 			description =
-				S("Misc. controlling node for a container"),
+				S("Misc. Controlling Node for a Container"),
 			tiles = {"area_containers_wall.png"},
 		})
 	)

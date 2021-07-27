@@ -309,7 +309,7 @@ function area_containers.container.on_construct(pos)
 	param1, param2 = area_containers.alloc_relation()
 	local meta = minetest.get_meta(pos)
 	if param1 then
-		meta:set_string("infotext", S("Area container"))
+		meta:set_string("infotext", S("Area Container"))
 		construct_inside(pos, param1, param2)
 		minetest.swap_node(pos, {
 			name = node.name,
@@ -319,7 +319,7 @@ function area_containers.container.on_construct(pos)
 		minetest.log("error", "Could not allocate an inside when " ..
 			"constructing an area container at " ..
 			minetest.pos_to_string(pos))
-		meta:set_string("infotext", S("Broken area container"))
+		meta:set_string("infotext", S("Broken Area Container"))
 		minetest.swap_node(pos, {
 			name = node.name,
 			param1 = 0, param2 = 0,
