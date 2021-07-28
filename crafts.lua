@@ -23,23 +23,24 @@ local area_containers = ...
 function area_containers.register_crafts()
 	-- Minetest Game:
 	if minetest.registered_items["default:steel_ingot"] and
+	   minetest.registered_items["default:steelblock"] and
 	   minetest.registered_items["default:mese"] then
 		minetest.register_craft({
 			output = "area_containers:container",
 			recipe = {
 				{
 					"default:steel_ingot",
-					"default:steel_ingot",
+					"default:steelblock",
 					"default:steel_ingot"
 				},
 				{
-					"default:steel_ingot",
+					"default:steelblock",
 					"default:mese",
-					"default:steel_ingot",
+					"default:steelblock",
 				},
 				{
 					"default:steel_ingot",
-					"default:steel_ingot",
+					"default:steelblock",
 					"default:steel_ingot",
 				},
 			},
@@ -48,24 +49,24 @@ function area_containers.register_crafts()
 
 	-- MineClone 2:
 	if minetest.registered_items["mcl_core:ironblock"] and
-	   minetest.registered_items["mesecons:redstone"] and
-	   minetest.registered_items["mcl_core:diamond"] then
+	   minetest.registered_items["mcl_core:diamond"] and
+	   minetest.registered_items["mesecons:redstone"] then
 		minetest.register_craft({
 			output = "area_containers:container",
 			recipe = {
 				{
 					"mcl_core:ironblock",
-					"mesecons:redstone",
+					"mcl_core:diamond",
 					"mcl_core:ironblock"
 				},
 				{
-					"mesecons:redstone",
 					"mcl_core:diamond",
 					"mesecons:redstone",
+					"mcl_core:diamond",
 				},
 				{
 					"mcl_core:ironblock",
-					"mesecons:redstone",
+					"mcl_core:diamond",
 					"mcl_core:ironblock",
 				},
 			},
