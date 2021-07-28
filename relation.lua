@@ -45,15 +45,21 @@ local DEFAULT_X_BASE = -30608
 local DEFAULT_Z_BASE = -30608
 local MAX_CONTAINER_CACHE_SIZE = area_containers.settings.max_cache_size
 
--- Check that the parameters are within bounds:
+-- Check that the positioning settings are within bounds:
+local mod_setting_message =
+	"The setting area_containers_y_level_blocks is outside the mapgen_limit"
+local file_setting_message =
+	"A setting in this file is outside the mapgen_limit"
 local mapgen_limit_rounded = 16 * math.floor(
 	tonumber(minetest.settings:get("mapgen_limit") or 31000) / 16)
-assert(DEFAULT_Y_LEVEL >= -mapgen_limit_rounded)
-assert(DEFAULT_Y_LEVEL + 16 <= mapgen_limit_rounded)
-assert(DEFAULT_X_BASE >= -mapgen_limit_rounded)
-assert(DEFAULT_X_BASE + DEFAULT_INSIDE_SPACING * 255 <= mapgen_limit_rounded)
-assert(DEFAULT_Z_BASE >= -mapgen_limit_rounded)
-assert(DEFAULT_Z_BASE + DEFAULT_INSIDE_SPACING * 255 <= mapgen_limit_rounded)
+assert(DEFAULT_Y_LEVEL >= -mapgen_limit_rounded, mod_setting_message)
+assert(DEFAULT_Y_LEVEL + 16 <= mapgen_limit_rounded, mod_setting_message)
+assert(DEFAULT_X_BASE >= -mapgen_limit_rounded, file_setting_message)
+assert(DEFAULT_X_BASE + DEFAULT_INSIDE_SPACING * 255 <= mapgen_limit_rounded,
+	file_setting_message)
+assert(DEFAULT_Z_BASE >= -mapgen_limit_rounded, file_setting_message)
+assert(DEFAULT_Z_BASE + DEFAULT_INSIDE_SPACING * 255 <= mapgen_limit_rounded,
+	file_setting_message)
 
 -- Persistent Configuration --
 
