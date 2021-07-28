@@ -10,6 +10,15 @@ structures in the container can communicate with the outside using
 [Mesecons][2] and/or [Digilines][3]. Items can pass in and out through tubes
 from the [Pipeworks][4] mod.
 
+## Caveats
+
+- While a container is not diggable until you empty it of nodes and objects,
+  other mods may let you pick it up in order to move it. Doing so will probably
+  lead to loss of the contents. (But you _can_ push containers with pistons.)
+- You cannot yet pass a mesecons signal from one port to another with no delay
+  inbetween due to [this bug in Mesecons][5]. Other related issues may exist.
+- Only up to 65535 containers may exist at any one time.
+
 ## Licenses
 
 ### Source code
@@ -19,7 +28,7 @@ as stated in the source code files themselves.
 
 ### Images and other files not otherwise licensed
 
-These files are licensed under a [CC BY-SA 3.0 license][5].
+These files are licensed under a [CC BY-SA 3.0 license][6].
 
 They are also under the same copyright as the source files:
 
@@ -29,4 +38,5 @@ They are also under the same copyright as the source files:
 [2]: https://mesecons.net/
 [3]: https://mesecons.net/digilines.html
 [4]: https://gitlab.com/VanessaE/pipeworks/-/wikis/home
-[5]: https://creativecommons.org/licenses/by-sa/3.0/
+[5]: https://github.com/minetest-mods/mesecons/issues/571
+[6]: https://creativecommons.org/licenses/by-sa/3.0/
