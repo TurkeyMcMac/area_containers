@@ -30,10 +30,12 @@
    Port nodes inside the chamber correspond to faces of the container. Pipeworks
    tubes can pass items through the ports. A mesecons signal can conduct between
    the horizontal container faces and the ports.
-   NOTE: port nodes are assumed to be on the -X side of the chamber.
 
    Digilines messages can pass unaltered between the container and the digiline
    node inside.
+
+   NOTE: port nodes are assumed to be on the -X side of the chamber. Digiline
+   nodes are assumed to be on the floor.
 
    The container cannot be broken until it is empty of nodes and objects. While
    the inside's block is active, a special "object counter" node continuously
