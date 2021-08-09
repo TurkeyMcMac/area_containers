@@ -98,9 +98,9 @@ function area_containers.register_nodes()
 				outer_wire_texture(mesecon_off_color),
 				outer_wire_texture(mesecon_on_color),
 			}
-			for i, active in ipairs(activation) do
+			for j, active in ipairs(activation) do
 				-- The tile corresponding to this bit:
-				local tile_idx = 7 - i
+				local tile_idx = 7 - j
 				local label = "area_containers_" ..
 					container_tile_ids[tile_idx] .. ".png"
 				container_def.tiles[tile_idx] = table.concat({

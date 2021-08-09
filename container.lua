@@ -410,7 +410,7 @@ area_containers.container.digiline = {
 }
 
 -- Forwards messages to the inside.
-function area_containers.container.digiline.effector.action(pos, node,
+function area_containers.container.digiline.effector.action(_pos, node,
 		channel, msg)
 	local inside_pos = area_containers.get_related_inside(
 		node.param1, node.param2)
@@ -431,7 +431,7 @@ area_containers.container.tube = {
 	},
 }
 
-function area_containers.container.tube.can_insert(pos, node, stack, dir)
+function area_containers.container.tube.can_insert(_pos, node, _stack, dir)
 	if node.param1 == 0 and node.param2 == 0 then return false end
 	local inside_pos = area_containers.get_related_inside(
 		node.param1, node.param2)
@@ -440,7 +440,7 @@ function area_containers.container.tube.can_insert(pos, node, stack, dir)
 	return can_insert(port_pos, vector.new(1, 0, 0))
 end
 
-function area_containers.container.tube.insert_object(pos, node, stack, dir,
+function area_containers.container.tube.insert_object(_pos, node, stack, dir,
 		owner)
 	local inside_pos = area_containers.get_related_inside(
 		node.param1, node.param2)
@@ -507,7 +507,7 @@ end
 area_containers.exit = {}
 
 -- Teleports the player out of the container.
-function area_containers.exit.on_rightclick(pos, node, clicker)
+function area_containers.exit.on_rightclick(_pos, node, clicker)
 	local inside_pos =
 		area_containers.get_related_inside(node.param1, node.param2)
 	local clicker_pos = clicker and clicker:get_pos()
@@ -540,7 +540,7 @@ area_containers.digiline = {
 }
 
 -- Forwards digiline messages to the container.
-function area_containers.digiline.digiline.effector.action(pos, node,
+function area_containers.digiline.digiline.effector.action(_pos, node,
 		channel, msg)
 	local container_pos =
 		area_containers.get_related_container(node.param1, node.param2)
@@ -562,7 +562,7 @@ area_containers.port = {
 }
 
 
-function area_containers.port.tube.can_insert(pos, node)
+function area_containers.port.tube.can_insert(_pos, node)
 	local container_pos =
 		area_containers.get_related_container(node.param1, node.param2)
 	if not container_pos then return false end
@@ -570,7 +570,7 @@ function area_containers.port.tube.can_insert(pos, node)
 	return can_insert(container_pos, port_dirs[id])
 end
 
-function area_containers.port.tube.insert_object(pos, node, stack, dir, owner)
+function area_containers.port.tube.insert_object(_pos, node, stack, dir, owner)
 	local container_pos = area_containers.get_related_container(
 		node.param1, node.param2)
 	if not container_pos then return stack end
@@ -630,7 +630,7 @@ end
 
 area_containers.object_counter = {}
 
-function area_containers.object_counter.on_timer(pos, timer)
+function area_containers.object_counter.on_timer(pos)
 	-- The counter's position is also the inside_pos:
 	update_non_player_object_count(pos)
 	update_inside_lighting(pos)

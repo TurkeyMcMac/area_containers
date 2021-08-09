@@ -34,7 +34,7 @@ end
 
 -- Checks whether the position is protected only according to area_containers.
 -- See the overview for this file.
-local function is_area_containers_protected(pos, name)
+local function is_area_containers_protected(pos)
 	-- The minimum position of the block containing pos:
 	local block_min_pos = vector.apply(pos, floor_blocksize)
 	-- Check that the position is within one block of the inside Y-level:
@@ -61,10 +61,10 @@ end
 local old_is_protected = nil
 
 -- The soon-to-be new value of minetest.is_protected.
-function is_protected(pos, name)
+local function is_protected(pos, name)
 	-- Apply our mod's protection unless the player can bypass it:
 	if not minetest.check_player_privs(name, "protection_bypass") and
-	   is_area_containers_protected(pos, name) then
+	   is_area_containers_protected(pos) then
 		return true
 	end
 	return old_is_protected(pos, name)

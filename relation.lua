@@ -30,7 +30,7 @@
   values that can be stored in a node. Relations are allocated and freed using
   functions in this file. An allocated/freed parameter pair must never have both
   parameters be 0, but all possible parameter combinations are considered valid
-  relations. 
+  relations.
 ]]
 
 -- Name the private namespace:
