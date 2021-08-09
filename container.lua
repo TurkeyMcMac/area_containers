@@ -230,9 +230,8 @@ local function set_up_ports(param1, param2, inside_pos)
 	end
 end
 
--- Creats a chamber with all the necessary nodes related to container_pos
--- through param1 and param2.
-local function construct_inside(container_pos, param1, param2)
+-- Creats a chamber with all the necessary nodes related with param1 and param2.
+local function construct_inside(param1, param2)
 	local inside_pos = area_containers.get_related_inside(param1, param2)
 	-- The min and max provide the guidelines for the walls:
 	local min_pos = inside_pos
@@ -265,8 +264,6 @@ local function construct_inside(container_pos, param1, param2)
 	vm:set_data(data)
 	vm:write_to_map(true)
 
-	-- Relate the container position:
-	area_containers.set_related_container(param1, param2, container_pos)
 	-- Set up the special nodes:
 	set_up_object_counter(param1, param2, inside_pos)
 	set_up_exit(param1, param2, inside_pos)
@@ -288,11 +285,33 @@ for i, variant in ipairs(all_container_variants) do
 		container_name_prefix .. variant
 end
 
--- Relates an inside to the container and sets up the inside.
+-- A set of unique parameter pairs (as two-item lists.) Their inside areas have
+-- their emergences queued but are not yet constructed. When the server shuts
+-- down, these pending relations must be freed; they would be hard to save. They
+-- are removed from the set after being freed, just in case.
+local emerging_relations = {}
+minetest.register_on_shutdown(function()
+	for _, params in pairs(emerging_relations) do
+		local param1, param2 = unpack(params)
+		minetest.log("error", "The area container  with param1 = " ..
+			param1 .. " and param2 = " .. param2 ..
+			" had its construction interrupted by the shutdown")
+		area_containers.free_relation(param1, param2)
+	end
+	-- Clear the list in case any emerge callbacks somehow run after this:
+	emerging_relations = {}
+end)
+
+-- Relates an inside to the container and sets up the inside (asynchronously.)
 function area_containers.container.on_construct(pos)
+	-- Make a copy for safety:
+	pos = {x = pos.x, y = pos.y, z = pos.z}
+
 	local node = get_node_maybe_load(pos)
+
 	local param1 = node.param1
 	local param2 = node.param2
+
 	if param1 ~= 0 or param2 ~= 0 then
 		-- If the relation is set, the container was probably moved by
 		-- a piston or something.
@@ -308,25 +327,67 @@ function area_containers.container.on_construct(pos)
 				param2 .. "; allocating a new inside instead")
 		end
 	end
-	param1, param2 = area_containers.alloc_relation()
+
 	local meta = minetest.get_meta(pos)
-	if param1 then
+
+	-- Make a broken container; it will be un-broken if all goes to plan:
+	meta:set_string("infotext", S("Broken Area Container"))
+	minetest.swap_node(pos, {
+		name = node.name,
+		param1 = 0, param2 = 0,
+	})
+
+	param1, param2 = area_containers.alloc_relation()
+
+	if not param1 then
+		minetest.log("error", "Could not allocate an inside when " ..
+			"constructing an area container at " ..
+			minetest.pos_to_string(pos))
+		return
+	end
+
+	-- Generate stuff (after emergence, to prevent conflicts with mapgen):
+	local index = area_containers.get_params_index(param1, param2)
+	emerging_relations[index] = {param1, param2}
+	local function after_emerge(_blockpos, action)
+		-- Abort if the relation was somehow freed or used up:
+		if not emerging_relations[index] then return end
+
+		emerging_relations[index] = nil
+
+		-- Check that the emerge didn't fail:
+		if action == minetest.EMERGE_ERRORED or
+		   action == minetest.EMERGE_CANCELLED then
+			minetest.log("error", "An emerge failure prevented " ..
+				"complete construction of " ..
+				"the area container located at " ..
+				minetest.pos_to_string(pos) ..
+				" with param1 = " .. param1 ..
+				" and param2 = " .. param2)
+			area_containers.free_relation(param1, param2)
+			return
+		end
+
+		-- Check that the node hasn't changed:
+		local node_now = get_node_maybe_load(pos)
+		if node_now.name ~= node.name or
+		   node_now.param1 ~= 0 or node_now.param2 ~= 0 then
+			area_containers.free_relation(param1, param2)
+			return
+		end
+
+		-- Now actually do the work, at long last:
+		construct_inside(param1, param2)
 		meta:set_string("infotext", S("Area Container"))
-		construct_inside(pos, param1, param2)
 		minetest.swap_node(pos, {
 			name = node.name,
 			param1 = param1, param2 = param2,
 		})
-	else
-		minetest.log("error", "Could not allocate an inside when " ..
-			"constructing an area container at " ..
-			minetest.pos_to_string(pos))
-		meta:set_string("infotext", S("Broken Area Container"))
-		minetest.swap_node(pos, {
-			name = node.name,
-			param1 = 0, param2 = 0,
-		})
+		area_containers.set_related_container(param1, param2, pos)
 	end
+	-- Start the emergence:
+	local inside_pos = area_containers.get_related_inside(param1, param2)
+	minetest.emerge_area(inside_pos, inside_pos, after_emerge)
 end
 
 -- Frees the inside related to the container.

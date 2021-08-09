@@ -87,15 +87,12 @@ local param2_next = get_or_default("param2_next", 0)
 
 -- Container position caching --
 
--- The cache of container positions.
+-- The cache of container positions (indexed by get_params_index.)
 local cached_containers = {}
 -- The number of entries.
 local container_cache_size = 0
 
-local function get_cache_index(param1, param2)
-	return param1 + param2 * 256
-end
-
+-- Cache the container position to associate with the given parameter index.
 local function cache_container(index, pos)
 	local old_value = cached_containers[index]
 	if pos and not old_value then
@@ -114,6 +111,12 @@ local function cache_container(index, pos)
 end
 
 -- Parameter Interpretation --
+
+-- Returns a numeric index unique to the parameter pair.
+local function get_params_index(param1, param2)
+	return param1 + param2 * 256
+end
+area_containers.get_params_index = get_params_index
 
 -- Returns the related inside position (the minimum coordinate of the chamber.)
 local function get_related_inside(param1, param2)
@@ -143,7 +146,7 @@ area_containers.inside_y_level = Y_LEVEL
 
 -- Gets the related container position. Returns nil if it isn't set.
 function area_containers.get_related_container(param1, param2)
-	local idx = get_cache_index(param1, param2)
+	local idx = get_params_index(param1, param2)
 	local container_pos = cached_containers[idx]
 	if not container_pos then
 		local inside_pos = get_related_inside(param1, param2)
@@ -161,7 +164,7 @@ function area_containers.set_related_container(param1, param2, container_pos)
 	local inside_meta = minetest.get_meta(inside_pos)
 	inside_meta:set_string("area_containers:container_pos",
 		container_pos and minetest.pos_to_string(container_pos) or "")
-	cache_container(get_cache_index(param1, param2), container_pos)
+	cache_container(get_params_index(param1, param2), container_pos)
 end
 
 -- Parameter String Encoding and Decoding --
