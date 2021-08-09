@@ -59,9 +59,7 @@ local S = minetest.get_translator("area_containers")
 local function get_node_maybe_load(pos)
 	local node = minetest.get_node_or_nil(pos)
 	if node then return node end
-	-- Try to load the block:
-	local vm = minetest.get_voxel_manip()
-	vm:read_from_map(pos, pos)
+	minetest.load_area(pos)
 	return minetest.get_node(pos) -- Might be "ignore"
 end
 
@@ -239,10 +237,7 @@ local function construct_inside(param1, param2)
 
 	local vm = minetest.get_voxel_manip()
 	local min_edge, max_edge = vm:read_from_map(min_pos, max_pos)
-	local area = VoxelArea:new{
-		MinEdge = min_edge,
-		MaxEdge = max_edge,
-	}
+	local area = VoxelArea:new{MinEdge = min_edge, MaxEdge = max_edge}
 
 	-- Make the walls:
 	local data = vm:get_data()
@@ -431,20 +426,11 @@ function area_containers.container_is_empty(pos, node)
 	-- Detect nodes left inside.
 	local vm = minetest.get_voxel_manip()
 	local min_edge, max_edge = vm:read_from_map(min_pos, max_pos)
-	local area = VoxelArea:new{
-		MinEdge = min_edge,
-		MaxEdge = max_edge,
-	}
+	local area = VoxelArea:new{MinEdge = min_edge, MaxEdge = max_edge}
 	local data = vm:get_data()
 	local c_air = minetest.CONTENT_AIR
-	for z = min_pos.z, max_pos.z do
-		for y = min_pos.y, max_pos.y do
-			for x = min_pos.x, max_pos.x do
-				if data[area:index(x, y, z)] ~= c_air then
-					return false
-				end
-			end
-		end
+	for i in area:iterp(min_pos, max_pos) do
+		if data[i] ~= c_air then return false end
 	end
 
 	-- Detect objects inside.
