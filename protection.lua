@@ -29,7 +29,7 @@ local area_containers = ...
 
 -- Rounds a vector component down to the nearest block size.
 local function floor_blocksize(pos)
-        return math.floor(pos / 16) * 16
+	return math.floor(pos / 16) * 16
 end
 
 -- Checks whether the position is protected only according to area_containers.
@@ -72,6 +72,6 @@ end
 
 -- Sets up the is_protected function.
 function area_containers.register_is_protected()
-        old_is_protected = minetest.is_protected
-        minetest.is_protected = is_protected
+	old_is_protected = minetest.is_protected
+	minetest.is_protected = is_protected
 end

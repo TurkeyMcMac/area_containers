@@ -128,14 +128,14 @@ area_containers.get_related_inside = get_related_inside
 -- Returns the two params associated with the position if it is a position that
 -- could be returned from get_related_inside, or two nil values otherwise.
 function area_containers.get_params_from_inside(inside_pos)
-        if inside_pos.y ~= Y_LEVEL then return nil, nil end
-        local param1 = (inside_pos.x - X_BASE) / INSIDE_SPACING
-        local param2 = (inside_pos.z - Z_BASE) / INSIDE_SPACING
-        if param1 >= 0 and param1 <= 255 and param2 >= 0 and param2 <= 255 and
-           param1 % 1 == 0 and param2 % 1 == 0 then
-                return param1, param2
-           end
-        return nil, nil
+	if inside_pos.y ~= Y_LEVEL then return nil, nil end
+	local param1 = (inside_pos.x - X_BASE) / INSIDE_SPACING
+	local param2 = (inside_pos.z - Z_BASE) / INSIDE_SPACING
+	if param1 >= 0 and param1 <= 255 and param2 >= 0 and param2 <= 255 and
+	   param1 % 1 == 0 and param2 % 1 == 0 then
+		return param1, param2
+	end
+	return nil, nil
 end
 
 -- The actual Y-level (in nodes) of all inside positions (container bottoms.)
