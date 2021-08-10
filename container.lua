@@ -416,8 +416,8 @@ end
 
 -- Returns whether there are any nodes or objects in the container.
 -- The object count might not be 100% accurate if the container is unloaded.
-function area_containers.container_is_empty(pos, node)
-	node = node or get_node_maybe_load(pos)
+local function container_is_empty(pos)
+	local node = get_node_maybe_load(pos)
 	local name_prefix = string.sub(node.name, 1, #container_name_prefix)
 	if name_prefix ~= container_name_prefix then return true end
 	-- Invalid containers are empty:
@@ -449,7 +449,7 @@ function area_containers.container_is_empty(pos, node)
 end
 
 function area_containers.container.can_dig(pos)
-	return area_containers.container_is_empty(pos)
+	return container_is_empty(pos)
 end
 
 function area_containers.container.on_blast()
