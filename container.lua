@@ -305,7 +305,7 @@ end)
 -- Relates an inside to the container and sets up the inside (asynchronously.)
 function area_containers.container.on_construct(pos)
 	-- Make a copy for safety:
-	pos = {x = pos.x, y = pos.y, z = pos.z}
+	pos = vector.new(pos)
 
 	local node = get_node_maybe_load(pos)
 
