@@ -292,11 +292,10 @@ end
 local emerging_relations = {}
 minetest.register_on_shutdown(function()
 	for _, params in pairs(emerging_relations) do
-		local param1, param2 = unpack(params)
-		minetest.log("error", "The area container  with param1 = " ..
-			param1 .. " and param2 = " .. param2 ..
+		minetest.log("error", "The area container with param1 = " ..
+			params[1] .. " and param2 = " .. params[2] ..
 			" had its construction interrupted by the shutdown")
-		area_containers.free_relation(param1, param2)
+		area_containers.free_relation(params[1], params[2])
 	end
 	-- Clear the list in case any emerge callbacks somehow run after this:
 	emerging_relations = {}
