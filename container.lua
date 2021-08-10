@@ -222,6 +222,21 @@ local function set_up_digiline(param1, param2, inside_pos)
 	})
 end
 
+-- Removes and cleans up previous inside ports if they are there.
+local function remove_previous_ports(inside_pos)
+	for _, offset in pairs(port_offsets) do
+		local pos = vector.add(inside_pos, offset)
+		local prev = get_node_maybe_load(pos)
+		if string.sub(prev.name, 1, #port_name_prefix)
+				== port_name_prefix then
+			minetest.remove_node(pos)
+			if minetest.global_exists("pipeworks") then
+				pipeworks.after_dig(pos)
+			end
+		end
+	end
+end
+
 -- Sets up the port nodes near inside_pos. The params encode the relation.
 local function set_up_ports(param1, param2, inside_pos)
 	for id, offset in pairs(port_offsets) do
@@ -230,6 +245,9 @@ local function set_up_ports(param1, param2, inside_pos)
 			name = port_name_prefix .. id .. "_off",
 			param1 = param1, param2 = param2,
 		})
+		if minetest.global_exists("pipeworks") then
+			pipeworks.after_place(pos)
+		end
 	end
 end
 
@@ -239,6 +257,8 @@ local function construct_inside(param1, param2)
 	-- The min and max provide the guidelines for the walls:
 	local min_pos = inside_pos
 	local max_pos = vector.add(min_pos, 15)
+
+	remove_previous_ports(inside_pos)
 
 	local vm = minetest.get_voxel_manip()
 	local min_edge, max_edge = vm:read_from_map(min_pos, max_pos)
@@ -482,7 +502,12 @@ area_containers.container.tube = {
 	},
 }
 
-function area_containers.container.tube.can_insert(_pos, node, _stack, dir)
+function area_containers.container.tube.can_insert(pos, node, _stack, dir)
+	local self_pos = area_containers.get_related_container(
+		node.param1, node.param2)
+	if not self_pos or not vector.equals(pos, self_pos) then
+		return false
+	end
 	if node.param1 == 0 and node.param2 == 0 then return false end
 	local inside_pos = area_containers.get_related_inside(
 		node.param1, node.param2)
@@ -491,8 +516,13 @@ function area_containers.container.tube.can_insert(_pos, node, _stack, dir)
 	return can_insert(port_pos, vector.new(1, 0, 0))
 end
 
-function area_containers.container.tube.insert_object(_pos, node, stack, dir,
+function area_containers.container.tube.insert_object(pos, node, stack, dir,
 		owner)
+	local self_pos = area_containers.get_related_container(
+		node.param1, node.param2)
+	if not self_pos or not vector.equals(pos, self_pos) then
+		return stack
+	end
 	local inside_pos = area_containers.get_related_inside(
 		node.param1, node.param2)
 	local port_id = get_port_id_from_direction(vector.multiply(dir, -1))
