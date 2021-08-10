@@ -63,6 +63,11 @@ local function get_node_maybe_load(pos)
 	return minetest.get_node(pos) -- Might be "ignore"
 end
 
+-- Converts a vector (with or without a metatable) into a plain table.
+local function vec2table(v)
+	return {x = v.x, y = v.y, z = v.z}
+end
+
 -- Gets the stored count of non-player objects associated with the inside.
 local function get_non_player_object_count(inside_pos)
 	local inside_meta = minetest.get_meta(inside_pos)
@@ -513,7 +518,7 @@ area_containers.container.mesecons = {conductor = {
 local function container_rules_add_port(rules, port_id, self_pos, inside_pos)
 	local port_pos = vector.add(inside_pos, port_offsets[port_id])
 	local offset_to_port = vector.subtract(port_pos, self_pos)
-	rules[#rules + 1] = offset_to_port
+	rules[#rules + 1] = vec2table(offset_to_port)
 end
 function area_containers.container.mesecons.conductor.rules(node)
 	local rules = {
@@ -646,7 +651,7 @@ local function get_port_rules(node)
 		local self_pos = vector.add(inside_pos, port_offsets[id])
 		local container_offset =
 			vector.subtract(container_pos, self_pos)
-		rules[#rules + 1] = container_offset
+		rules[#rules + 1] = vec2table(container_offset)
 	end
 	return rules
 end
