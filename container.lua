@@ -436,7 +436,7 @@ function area_containers.container.on_rightclick(pos, node, clicker)
 end
 
 -- Returns whether there are any nodes or objects in the container.
--- The object count might not be 100% accurate if the container is unloaded.
+-- The object count might not be 100% accurate.
 local function container_is_empty(pos)
 	local node = get_node_maybe_load(pos)
 	local name_prefix = string.sub(node.name, 1, #container_name_prefix)
