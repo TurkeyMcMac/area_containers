@@ -230,7 +230,8 @@ local function remove_previous_ports(inside_pos)
 		if string.sub(prev.name, 1, #port_name_prefix)
 				== port_name_prefix then
 			minetest.remove_node(pos)
-			if minetest.global_exists("pipeworks") then
+			if minetest.global_exists("pipeworks") and
+			   pipeworks.after_dig then
 				pipeworks.after_dig(pos)
 			end
 		end
@@ -245,7 +246,8 @@ local function set_up_ports(param1, param2, inside_pos)
 			name = port_name_prefix .. id .. "_off",
 			param1 = param1, param2 = param2,
 		})
-		if minetest.global_exists("pipeworks") then
+		if minetest.global_exists("pipeworks") and
+		   pipeworks.after_place then
 			pipeworks.after_place(pos)
 		end
 	end
