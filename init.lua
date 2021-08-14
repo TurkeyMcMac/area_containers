@@ -21,6 +21,8 @@
 -- This is a mod-private namespace for functions and stuff.
 local area_containers = {}
 
+local storage = minetest.get_mod_storage()
+
 area_containers.settings = {
 	y_level_blocks = tonumber(minetest.settings:get(
 		"area_containers_y_level_blocks") or 1931),
@@ -34,7 +36,7 @@ area_containers.settings = {
 
 local function run_file(filename)
 	local path = minetest.get_modpath("area_containers") .. "/" .. filename
-	return assert(loadfile(path))(area_containers)
+	return assert(loadfile(path))(area_containers, storage)
 end
 run_file("crafts.lua")
 run_file("container.lua")

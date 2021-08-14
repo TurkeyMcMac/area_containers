@@ -33,8 +33,8 @@
   relations.
 ]]
 
--- Name the private namespace:
-local area_containers = ...
+-- Name the private namespace and storage:
+local area_containers, storage = ...
 
 -- Settings --
 
@@ -62,8 +62,6 @@ assert(DEFAULT_Z_BASE + DEFAULT_INSIDE_SPACING * 255 <= mapgen_limit_rounded,
 	file_setting_message)
 
 -- Persistent Configuration --
-
-local storage = minetest.get_mod_storage()
 
 local function get_or_default(key, default)
 	if storage:contains(key) then
