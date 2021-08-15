@@ -16,6 +16,9 @@ Area containers can be locked. To do so, first craft a lock. Then punch a
 container with the lock (you must be either the one who built the container or
 one able to bypass protection.)
 
+If a container is unowned and you can bypass protection, you can claim it by
+locking it.
+
 To let other people in, first craft a blank key. Then punch your container with
 the key, binding the key to the container. Other people can enter the container
 while holding the key. The container contents themselves are not protected in
