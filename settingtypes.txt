@@ -25,5 +25,5 @@ area_containers_y_level_blocks (Inside Y-level) int 1931 -1932 1931
 # The maximum size of the container position cache used to quickly relate inside chambers to container nodes.
 area_containers_max_cache_size (Maximum container cache size) int 256 1 65536
 
-# The level of light the walls of inside chambers emit, from 0 to 14. 0 means that no light is emitted.
+# The level of light the walls of inside chambers emit, from 0 to 14. 0 means that no light is emitted. Changing this with preexisting containers will cause incorrect lighting.
 area_containers_wall_light (Wall light) int 14 0 14
