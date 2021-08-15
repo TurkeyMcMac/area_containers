@@ -1,0 +1,113 @@
+--[[
+   Copyright (C) 2021  Jude Melton-Houghton
+
+   This file is part of area_containers. It implements container lock functions.
+
+   area_containers is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published
+   by the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   area_containers is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with area_containers. If not, see <https://www.gnu.org/licenses/>.
+]]
+
+--[[
+   OVERVIEW
+
+   Locks can be added or removed from area containers by container owners or
+   people who can bypass protection (henceforth both called "admins".) Others
+   entering the container must hold an appropriate key to get in. These keys
+   can only be created by admins. If an admin sets the lock on an unowned
+   container, they take ownership. All existing keys to a container can be
+   revoked by uninstalling and reinstalling the lock.
+
+   This file contains only the business logic. See container.lua for the rest
+   of the implementation.
+]]
+
+-- Name the private namespace and storage:
+local area_containers, storage = ...
+
+-- Returns a unique lock ID.
+local function get_next_lock_id()
+	local lock_id = storage:get_int("next_lock_id")
+	-- Loop around, theoretically:
+	storage:set_int("next_lock_id", (lock_id + 1) % 281474976710656)
+	return tostring(lock_id)
+end
+
+-- Returns whether the named player is an admin of the node owned as given.
+-- A nil owner means that the node is unowned.
+local function user_can_use(player_name, owner)
+	return minetest.check_player_privs(player_name, "protection_bypass") or
+		player_name == owner
+end
+
+-- Returns whether the given node is locked.
+function area_containers.is_locked(pos)
+	return minetest.get_meta(pos):contains("area_containers:lock")
+end
+
+-- Returns whether the user can enter the node according to the (possible) lock.
+-- The user may be wielding a key item.
+function area_containers.lock_allows_enter(pos, user)
+	local meta = minetest.get_meta(pos)
+	if meta:contains("area_containers:lock") and
+	   not user_can_use(user:get_player_name(), meta:get("owner")) then
+		local item_meta = user:get_wielded_item():get_meta()
+		local lock_try =
+			item_meta:get_string("area_containers:lock")
+		local lock = meta:get_string("area_containers:lock")
+		if lock_try ~= lock then return false end
+	end
+	return true
+end
+
+-- Sets the lock as the user. Returns whether doing so was successful.
+function area_containers.set_lock(pos, user)
+	local player_name = user:get_player_name()
+	if minetest.is_protected(pos, player_name) then return false end
+	local meta = minetest.get_meta(pos)
+	local owner = meta:get("owner")
+	if not user_can_use(player_name, owner) then return false end
+	if meta:contains("area_containers:lock") then return false end
+
+	meta:set_string("area_containers:lock", get_next_lock_id())
+	-- Take ownership if it's unowned:
+	if not owner then meta:set_string("owner", player_name) end
+	return true
+end
+
+-- Removes the lock as the user. Returns whether doing so was successful.
+function area_containers.remove_lock(pos, user)
+	local player_name = user:get_player_name()
+	if minetest.is_protected(pos, player_name) then return false end
+	local meta = minetest.get_meta(pos)
+	local owner = meta:get("owner")
+	if not user_can_use(player_name, owner) then return false end
+	if not meta:contains("area_containers:lock") then return false end
+
+	meta:set_string("area_containers:lock", "")
+	return true
+end
+
+-- Sets up the user's wielded item as a key to the lock. Returns whether
+-- doing so was successful.
+function area_containers.fill_key(pos, user)
+	local meta = minetest.get_meta(pos)
+	if not user_can_use(user:get_player_name(), meta:get("owner")) then
+		return false
+	end
+	if not meta:contains("area_containers:lock") then return false end
+
+	local key = user:get_wielded_item()
+	key:get_meta():set_string("area_containers:lock",
+		meta:get_string("area_containers:lock"))
+	return user:set_wielded_item(key)
+end

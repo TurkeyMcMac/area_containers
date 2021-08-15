@@ -16,7 +16,7 @@
 # along with area_containers. If not, see <https://www.gnu.org/licenses/>.
 
 
-# Whether to enable crafting of the area container (and other items if they are added.)
+# Whether to enable crafting of the mod's items.
 area_containers_enable_crafts (Enable crafts) bool true
 
 # The Y coordinate of the bottom face of all inside chambers (chambers linked to area containers,) measured in multiples of the block size (16.) There is a layer of protected nodes from one block above this to one block below. This cannot be changed once the world is generated.

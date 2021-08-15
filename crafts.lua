@@ -20,56 +20,70 @@
 -- Name the private namespace:
 local area_containers = ...
 
-function area_containers.register_crafts()
-	-- Minetest Game:
-	if minetest.registered_items["default:steel_ingot"] and
-	   minetest.registered_items["default:steelblock"] and
-	   minetest.registered_items["default:mese"] then
+local function register_crafts_with_ingredients(
+		container_corner, container_side, container_core,
+		item_body, item_core)
+	if minetest.registered_items[container_corner] and
+	   minetest.registered_items[container_side] and
+	   minetest.registered_items[container_core] then
 		minetest.register_craft({
 			output = "area_containers:container",
 			recipe = {
 				{
-					"default:steel_ingot",
-					"default:steelblock",
-					"default:steel_ingot"
+					container_corner,
+					container_side,
+					container_corner,
 				},
 				{
-					"default:steelblock",
-					"default:mese",
-					"default:steelblock",
+					container_side,
+					container_core,
+					container_side,
 				},
 				{
-					"default:steel_ingot",
-					"default:steelblock",
-					"default:steel_ingot",
+					container_corner,
+					container_side,
+					container_corner,
 				},
 			},
 		})
 	end
 
-	-- MineClone 2:
-	if minetest.registered_items["mcl_core:ironblock"] and
-	   minetest.registered_items["mcl_core:diamond"] and
-	   minetest.registered_items["mesecons:redstone"] then
+	if minetest.registered_items[item_body] and
+	   minetest.registered_items[item_core] then
 		minetest.register_craft({
-			output = "area_containers:container",
+			output = "area_containers:lock",
 			recipe = {
-				{
-					"mcl_core:ironblock",
-					"mcl_core:diamond",
-					"mcl_core:ironblock"
-				},
-				{
-					"mcl_core:diamond",
-					"mesecons:redstone",
-					"mcl_core:diamond",
-				},
-				{
-					"mcl_core:ironblock",
-					"mcl_core:diamond",
-					"mcl_core:ironblock",
-				},
+				{item_body, ""       },
+				{item_core, item_body},
+				{item_body, item_body},
+			},
+		})
+
+		minetest.register_craft({
+			output = "area_containers:key_blank",
+			recipe = {
+				{item_body, item_body, item_core},
+				{item_body, ""       , ""       },
 			},
 		})
 	end
+end
+
+function area_containers.register_crafts()
+	-- Minetest Game:
+	register_crafts_with_ingredients(
+		"default:steel_ingot", "default:steelblock", "default:mese",
+		"default:steel_ingot", "default:mese_crystal_fragment")
+
+	-- MineClone 2:
+	register_crafts_with_ingredients(
+		"mcl_core:ironblock", "mcl_core:diamond", "mesecons:redstone",
+		"mcl_core:iron_ingot", "mesecons:redstone")
+
+	-- Key recycling:
+	minetest.register_craft({
+		output = "area_containers:key_blank",
+		type = "shapeless",
+		recipe = {"area_containers:key"},
+	})
 end

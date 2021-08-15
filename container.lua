@@ -411,6 +411,16 @@ function area_containers.container.on_construct(pos)
 	minetest.emerge_area(inside_pos, inside_pos, after_emerge)
 end
 
+function area_containers.container.after_place_node(pos, placer)
+	if placer then
+		local meta = minetest.get_meta(pos)
+		meta:set_string("owner", placer:get_player_name())
+	end
+	if minetest.global_exists("pipeworks") and pipeworks.after_place then
+		pipeworks.after_place(pos)
+	end
+end
+
 -- Frees the inside related to the container.
 function area_containers.container.on_destruct(pos)
 	-- Only free properly allocated containers (with relation set):
@@ -420,9 +430,51 @@ function area_containers.container.on_destruct(pos)
 	end
 end
 
+if minetest.global_exists("pipeworks") then
+	area_containers.container.after_dig_node = pipeworks.after_dig
+end
+
+-- Adds a lock, removes a lock, or creates a new key.
+function area_containers.container.on_punch(pos, node, puncher, ...)
+	if node.param1 ~= 0 or node.param2 ~= 0 then
+		local meta = minetest.get_meta(pos)
+		local item_name = puncher:get_wielded_item():get_name()
+		if item_name == "area_containers:lock" then
+			if area_containers.set_lock(pos, puncher) then
+				meta:set_string("infotext",
+					S("Locked Area Container (owned by @1)",
+						meta:get_string("owner")))
+				local lock = puncher:get_wielded_item()
+				lock:set_count(lock:get_count() - 1)
+				puncher:set_wielded_item(lock)
+				return
+			end
+		elseif item_name == "" then
+			if area_containers.remove_lock(pos, puncher) then
+				meta:set_string("infotext", S("Area Container"))
+				puncher:set_wielded_item(
+					ItemStack("area_containers:lock"))
+				return
+			end
+		elseif item_name == "area_containers:key_blank" then
+			if area_containers.fill_key(pos, puncher) then
+				local key = puncher:get_wielded_item()
+				key:set_name("area_containers:key")
+				key:get_meta():set_string("description",
+					S("Key to @1's Area Container",
+						meta:get_string("owner")))
+				puncher:set_wielded_item(key)
+				return
+			end
+		end
+	end
+	return minetest.node_punch(pos, node, puncher, ...)
+end
+
 -- Teleports the player into the container.
 function area_containers.container.on_rightclick(pos, node, clicker)
-	if clicker then
+	if (node.param1 ~= 0 or node.param2 ~= 0) and
+	   area_containers.lock_allows_enter(pos, clicker) then
 		local inside_pos = area_containers.get_related_inside(
 			node.param1, node.param2)
 		local self_pos = area_containers.get_related_container(
@@ -433,6 +485,7 @@ function area_containers.container.on_rightclick(pos, node, clicker)
 			clicker:set_pos(dest)
 		end
 	end
+	return clicker:get_wielded_item()
 end
 
 -- Returns whether there are any nodes or objects in the container.
@@ -470,7 +523,8 @@ local function container_is_empty(pos)
 end
 
 function area_containers.container.can_dig(pos)
-	return container_is_empty(pos)
+	-- The lock item must be removed first:
+	return not area_containers.is_locked(pos) and container_is_empty(pos)
 end
 
 function area_containers.container.on_blast()
@@ -533,12 +587,6 @@ function area_containers.container.tube.insert_object(pos, node, stack, dir,
 	local out_vel = vector.new(out_speed, 0, 0)
 	pipeworks.tube_inject_item(port_pos, port_pos, out_vel, stack, owner)
 	return ItemStack() -- All inserted.
-end
-
-if minetest.global_exists("pipeworks") then
-	-- For updating tube connections.
-	area_containers.container.after_place_node = pipeworks.after_place
-	area_containers.container.after_dig_node = pipeworks.after_dig
 end
 
 -- A container is a conductor to its insides. The position of its insides can

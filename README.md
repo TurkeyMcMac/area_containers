@@ -10,6 +10,21 @@ structures in the container can communicate with the outside using
 [Mesecons][2] and/or [Digilines][3]. Items can pass in and out through tubes
 from the [Pipeworks][4] mod.
 
+## Locking
+
+Area containers can be locked. To do so, first craft a lock. Then punch a
+container with the lock (you must be either the one who built the container or
+one able to bypass protection.)
+
+To let other people in, first craft a blank key. Then punch your container with
+the key, binding the key to the container. Other people can enter the container
+while holding the key. The container contents themselves are not protected in
+any way.
+
+You can unlock your container by punching it with your bare hand. You must
+remove the lock before breaking the container. If you reinstall the lock,
+no prior keys will work.
+
 ## Caveats
 
 - While a container is not diggable until you empty it of nodes and objects,

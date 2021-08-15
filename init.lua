@@ -40,14 +40,18 @@ local function run_file(filename)
 end
 run_file("crafts.lua")
 run_file("container.lua")
+run_file("items.lua")
+run_file("lock.lua")
 run_file("nodes.lua")
 run_file("protection.lua")
 run_file("relation.lua")
 
 area_containers.register_nodes()
 
-area_containers.register_is_protected()
+area_containers.register_items()
 
 if area_containers.settings.enable_crafts then
 	area_containers.register_crafts()
 end
+
+area_containers.register_is_protected()
