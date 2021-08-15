@@ -72,11 +72,14 @@ end
 -- Sets the lock as the user. Returns whether doing so was successful.
 function area_containers.set_lock(pos, user)
 	local player_name = user:get_player_name()
-	if minetest.is_protected(pos, player_name) then return false end
 	local meta = minetest.get_meta(pos)
 	local owner = meta:get("owner")
 	if not user_can_use(player_name, owner) then return false end
 	if meta:contains("area_containers:lock") then return false end
+	if minetest.is_protected(pos, player_name) then
+		minetest.record_protection_violation(pos, player_name)
+		return false
+	end
 
 	meta:set_string("area_containers:lock", get_next_lock_id())
 	-- Take ownership if it's unowned:
@@ -87,11 +90,14 @@ end
 -- Removes the lock as the user. Returns whether doing so was successful.
 function area_containers.remove_lock(pos, user)
 	local player_name = user:get_player_name()
-	if minetest.is_protected(pos, player_name) then return false end
 	local meta = minetest.get_meta(pos)
 	local owner = meta:get("owner")
 	if not user_can_use(player_name, owner) then return false end
 	if not meta:contains("area_containers:lock") then return false end
+	if minetest.is_protected(pos, player_name) then
+		minetest.record_protection_violation(pos, player_name)
+		return false
+	end
 
 	meta:set_string("area_containers:lock", "")
 	return true
