@@ -513,9 +513,9 @@ function area_containers.container.can_dig(pos)
 	return not area_containers.is_locked(pos) and container_is_empty(pos)
 end
 
-function area_containers.container.on_blast()
-	-- The simplest way to preserve the inside is just to do nothing.
-end
+-- The simplest way to preserve the inside is just to do nothing:
+function area_containers.container.on_blast() end
+area_containers.container._mcl_blast_resistance = 1000000 -- Indestructible.
 
 area_containers.container.digiline = {
 	effector = {},
