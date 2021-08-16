@@ -25,8 +25,8 @@ while holding the key. The container contents themselves are not protected in
 any way.
 
 You can unlock your container by punching it with your bare hand. You must
-remove the lock before breaking the container. If you reinstall the lock,
-no prior keys will work.
+remove the lock before breaking the container. All keys to the container will
+continue to work even if you uninstall and reinstall the lock.
 
 ## Caveats
 

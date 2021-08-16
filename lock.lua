@@ -23,9 +23,8 @@
    Locks can be added or removed from area containers by container owners or
    people who can bypass protection (henceforth both called "admins".) Others
    entering the container must hold an appropriate key to get in. These keys
-   can only be created by admins. If an admin sets the lock on an unowned
-   container, they take ownership. All existing keys to a container can be
-   revoked by uninstalling and reinstalling the lock.
+   can only be created by admins. Keys are bound to the node for its lifetime.
+   If an admin sets the lock on an unowned container, they take ownership.
 
    This file contains only the business logic. See container.lua for the rest
    of the implementation.
@@ -81,7 +80,9 @@ function area_containers.set_lock(pos, user)
 		return false
 	end
 
-	meta:set_string("area_containers:lock", get_next_lock_id())
+	meta:set_string("area_containers:lock",
+		meta:get("area_containers:lock_inactive") or get_next_lock_id())
+	meta:set_string("area_containers:lock_inactive", "")
 	-- Take ownership if it's unowned:
 	if not owner then meta:set_string("owner", player_name) end
 	return true
@@ -99,6 +100,8 @@ function area_containers.remove_lock(pos, user)
 		return false
 	end
 
+	meta:set_string("area_containers:lock_inactive",
+		meta:get_string("area_containers:lock"))
 	meta:set_string("area_containers:lock", "")
 	return true
 end
