@@ -38,8 +38,8 @@ local function run_file(filename)
 	local path = minetest.get_modpath("area_containers") .. "/" .. filename
 	return assert(loadfile(path))(area_containers, storage)
 end
-run_file("crafts.lua")
 run_file("container.lua")
+run_file("crafts.lua")
 run_file("items.lua")
 run_file("lock.lua")
 run_file("nodes.lua")
