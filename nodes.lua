@@ -78,52 +78,45 @@ function area_containers.register_nodes()
 		container_tiles[i] = "area_containers_outer_port.png^" ..
 			"area_containers_" .. id .. ".png"
 	end
-	-- The activations in parallel to area_containers.all_container_states:
-	local container_activations = {
-		{0, 0, 0, 0}, {0, 0, 0, 1}, {0, 0, 1, 0}, {0, 0, 1, 1},
-		{0, 1, 0, 0}, {0, 1, 0, 1}, {0, 1, 1, 0}, {0, 1, 1, 1},
-		{1, 0, 0, 0}, {1, 0, 0, 1}, {1, 0, 1, 0}, {1, 0, 1, 1},
-		{1, 1, 0, 0}, {1, 1, 0, 1}, {1, 1, 1, 0}, {1, 1, 1, 1},
-	}
 	-- Register all the container nodes:
-	for i, name in ipairs(area_containers.all_container_states) do
-		local container_def = merged_table(area_containers.container, {
+	for name, def in pairs(area_containers.all_container_states) do
+		def = merged_table(area_containers.container, def)
+		def = merged_table(def, {
 			description = S("Area Container"),
 			tiles = table.copy(container_tiles),
 			drop = area_containers.all_container_states[1],
 		})
 		if minetest.global_exists("mesecon") then
-			local activation = container_activations[i]
+			local bits = def._area_containers_bits
 			local wire_choices = {
 				outer_wire_texture(mesecon_off_color),
 				outer_wire_texture(mesecon_on_color),
 			}
-			for j, active in ipairs(activation) do
-				-- The tile corresponding to this bit:
+			for j = 1, 4 do
+				local bit = bits % 2
 				local tile_idx = 7 - j
 				local label = "area_containers_" ..
 					container_tile_ids[tile_idx] .. ".png"
-				container_def.tiles[tile_idx] = table.concat({
+				def.tiles[tile_idx] = table.concat({
 					"area_containers_outer_port.png",
-					wire_choices[active + 1],
+					wire_choices[bit + 1],
 					label,
 				}, "^")
+				bits = math.floor(bits / 2)
 			end
 		end
 		if minetest.global_exists("default") and
 		   default.node_sound_metal_defaults then
-			container_def.sounds =
-				default.node_sound_metal_defaults()
+			def.sounds = default.node_sound_metal_defaults()
 		end
-		container_def.groups = merged_table(container_def.groups or {},
-			{cracky = 2})
-		if i > 1 then
-			container_def.groups.not_in_creative_inventory = 1
+		def.groups = merged_table(def.groups or {}, {cracky = 2})
+		if name ~= "area_containers:container_off" then
+			def.groups.not_in_creative_inventory = 1
 		end
-		minetest.register_node(name, container_def)
+		minetest.register_node(name, def)
 	end
 	minetest.register_alias("area_containers:container",
-		area_containers.all_container_states[1])
+		"area_containers:container_off")
 
 	local wall_light = area_containers.settings.wall_light
 	register_wall("wall", {
@@ -158,8 +151,8 @@ function area_containers.register_nodes()
 			-- Register correct colors for mesecons-enabled ports:
 			local color = mesecon_off_color
 			local on = mesecon_maybe.state.on
-			if mesecons_spec and mesecons_spec.conductor and
-			   mesecons_spec.conductor.state == on then
+			if mesecons_spec and mesecons_spec.receptor and
+			   mesecons_spec.receptor.state == on then
 				color = mesecon_on_color
 			end
 			tile = tile .. "^" .. wire_texture(color)

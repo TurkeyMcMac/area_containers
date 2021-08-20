@@ -68,6 +68,13 @@ local function vec2table(v)
 	return {x = v.x, y = v.y, z = v.z}
 end
 
+-- On/off constants, or nil if unavailable:
+local mesecon_state_on, mesecon_state_off
+if minetest.global_exists("mesecon") and mesecon.state then
+	mesecon_state_on = mesecon.state.on
+	mesecon_state_off = mesecon.state.off
+end
+
 -- Gets the stored count of non-player objects associated with the inside.
 local function get_non_player_object_count(inside_pos)
 	local inside_meta = minetest.get_meta(inside_pos)
@@ -102,6 +109,13 @@ local digiline_node_rules = {
 	{x = 0, y = 1, z = 1},
 	{x = -1, y = 1, z = 0},
 	{x = 0, y = 1, z = -1},
+}
+
+-- And the same for the port nodes' Mesecons functionality:
+local port_node_rules = {
+	{x = 1, y = -1, z = 0},
+	{x = 1, y = 0, z = 0},
+	{x = 1, y = 1, z = 0},
 }
 
 -- Determines whether a tube item can be inserted at the position going in the
@@ -144,6 +158,8 @@ local port_dirs = {
 -- The list of horizontal port IDs in the order they appear inside,
 -- left to right.
 local port_ids_horiz = {"nx", "pz", "px", "nz"}
+
+local port_bits = {px = 8, nx = 4, pz = 2, nz = 1}
 
 -- The longest common prefix of all port node names.
 local port_name_prefix = "area_containers:port_"
@@ -280,18 +296,6 @@ local function construct_inside(param1, param2)
 end
 
 area_containers.container = {}
-
--- The 16 container node names counting up from off to on in binary. The bits
--- from most to least significant are: +X, -X, +Z, -Z.
-area_containers.all_container_states = {}
-local all_container_variants = {
-	"off", "0001", "0010", "0011", "0100", "0101", "0110", "0111",
-	"1000", "1001", "1010", "1011", "1100", "1101", "1110", "on",
-}
-for i, variant in ipairs(all_container_variants) do
-	area_containers.all_container_states[i] =
-		container_name_prefix .. variant
-end
 
 -- A set of unique parameter pairs (as two-item lists.) Their inside areas have
 -- their emergences queued but are not yet constructed. When the server shuts
@@ -575,50 +579,84 @@ function area_containers.container.tube.insert_object(pos, node, stack, dir,
 	return ItemStack() -- All inserted.
 end
 
--- A container is a conductor to its insides. The position of its insides can
--- be determined from param1 and param2.
-area_containers.container.mesecons = {conductor = {
-	states = area_containers.all_container_states,
-}}
-local function container_rules_add_port(rules, port_id, self_pos, inside_pos)
+local function container_action_change(_pos, node, rule, changed_state)
+	local inside_pos =
+		area_containers.get_related_inside(node.param1, node.param2)
+	local dir = vector.new(rule.x or rule[1].x, 0, rule.z or rule[1].z)
+	local port_id = get_port_id_from_direction(dir)
 	local port_pos = vector.add(inside_pos, port_offsets[port_id])
-	local offset_to_port = vector.subtract(port_pos, self_pos)
-	rules[#rules + 1] = vec2table(offset_to_port)
+	local new_port_name
+	local change_func
+	if changed_state == mesecon_state_on then
+		change_func = mesecon.receptor_on
+		new_port_name = port_name_prefix .. port_id .. "_on"
+	else
+		change_func = mesecon.receptor_off
+		new_port_name = port_name_prefix .. port_id .. "_off"
+	end
+	minetest.swap_node(port_pos, {
+		name = new_port_name,
+		param1 = node.param1, param2 = node.param2,
+	})
+	change_func(port_pos, port_node_rules)
 end
-function area_containers.container.mesecons.conductor.rules(node)
-	local rules = {
-		{
-			{x = 1, y = 1, z = 0},
-			{x = 1, y = 0, z = 0},
-			{x = 1, y = -1, z = 0},
-		},
-		{
-			{x = -1, y = 1, z = 0},
-			{x = -1, y = 0, z = 0},
-			{x = -1, y = -1, z = 0},
-		},
-		{
-			{x = 0, y = 1, z = 1},
-			{x = 0, y = 0, z = 1},
-			{x = 0, y = -1, z = 1},
-		},
-		{
-			{x = 0, y = 1, z = -1},
-			{x = 0, y = 0, z = -1},
-			{x = 0, y = -1, z = -1},
+
+-- The map from container node names to information specific to that node.
+-- _area_containers_bits contains the activation bits. From most to least
+-- significant, these are: +X, -X, +Z, -Z.
+area_containers.all_container_states = {}
+local all_container_variants = {
+	"off", "0001", "0010", "0011", "0100", "0101", "0110", "0111",
+	"1000", "1001", "1010", "1011", "1100", "1101", "1110", "on",
+}
+local all_container_rules = {
+	{
+		{x = 1, y = 1, z = 0},
+		{x = 1, y = 0, z = 0},
+		{x = 1, y = -1, z = 0},
+	},
+	{
+		{x = -1, y = 1, z = 0},
+		{x = -1, y = 0, z = 0},
+		{x = -1, y = -1, z = 0},
+	},
+	{
+		{x = 0, y = 1, z = 1},
+		{x = 0, y = 0, z = 1},
+		{x = 0, y = -1, z = 1},
+	},
+	{
+		{x = 0, y = 1, z = -1},
+		{x = 0, y = 0, z = -1},
+		{x = 0, y = -1, z = -1},
+	},
+}
+for i, variant in ipairs(all_container_variants) do
+	local node_name = container_name_prefix .. variant
+	local rules_on = {}
+	local rules_off = {}
+	local bits_left = i - 1
+	for j = 4, 1, -1 do
+		if bits_left % 2 ~= 0 then
+			table.insert_all(rules_on, all_container_rules[j])
+		else
+			table.insert_all(rules_off, all_container_rules[j])
+		end
+		bits_left = math.floor(bits_left / 2)
+	end
+	area_containers.all_container_states[node_name] = {
+		_area_containers_bits = i - 1,
+		mesecons = {
+			receptor = {
+				state = mesecon_state_on,
+				rules = rules_on,
+			},
+			effector = {
+				action_change = container_action_change,
+				rules = rules_off,
+			},
 		},
 	}
-	local self_pos = area_containers.get_related_container(
-		node.param1, node.param2)
-	if self_pos then
-		local inside_pos = area_containers.get_related_inside(
-			node.param1, node.param2)
-		container_rules_add_port(rules[1], "px", self_pos, inside_pos)
-		container_rules_add_port(rules[2], "nx", self_pos, inside_pos)
-		container_rules_add_port(rules[3], "pz", self_pos, inside_pos)
-		container_rules_add_port(rules[4], "nz", self_pos, inside_pos)
-	end
-	return rules
 end
 
 area_containers.exit = {}
@@ -701,24 +739,37 @@ function area_containers.port.tube.insert_object(_pos, node, stack, dir, owner)
 end
 
 -- The ports conduct in a similar way to the container, using param1 and param2.
-local function get_port_rules(node)
-	local rules = {
-		{x = 1, y = -1, z = 0},
-		{x = 1, y = 0, z = 0},
-		{x = 1, y = 1, z = 0},
-	}
+local function port_action_change(_pos, node, _rule, changed_state)
 	local container_pos = area_containers.get_related_container(
 		node.param1, node.param2)
-	if container_pos then
-		local id = get_port_id_from_name(node.name)
-		local inside_pos = area_containers.get_related_inside(
-			node.param1, node.param2)
-		local self_pos = vector.add(inside_pos, port_offsets[id])
-		local container_offset =
-			vector.subtract(container_pos, self_pos)
-		rules[#rules + 1] = vec2table(container_offset)
+	if not container_pos then return end
+	local id = get_port_id_from_name(node.name)
+	local out_dir = port_dirs[id]
+	local container_rule = {
+		vec2table(vector.offset(out_dir, 0, -1, 0)),
+		vec2table(out_dir),
+		vec2table(vector.offset(out_dir, 0, 1, 0)),
+	}
+	local container_node = get_node_maybe_load(container_pos)
+	local bits = area_containers.all_container_states[container_node.name].
+		_area_containers_bits
+	local change_bit = port_bits[id]
+	local change_func
+	if changed_state == mesecon_state_on then
+		change_func = mesecon.receptor_on
+		if math.floor(bits / change_bit) % 2 == 1 then return end
+		bits = bits + change_bit
+	else
+		change_func = mesecon.receptor_off
+		if math.floor(bits / change_bit) % 2 == 0 then return end
+		bits = bits - change_bit
 	end
-	return rules
+	local new_variant = all_container_variants[bits + 1]
+	minetest.swap_node(container_pos, {
+		name = container_name_prefix .. new_variant,
+		param1 = container_node.param1, param2 = container_node.param2,
+	})
+	change_func(container_pos, container_rule)
 end
 
 -- The vertical faces don't get mesecons since it wasn't working with them.
@@ -727,21 +778,29 @@ area_containers.all_port_variants = {
 	ny_off = {},
 }
 for _, id in ipairs(port_ids_horiz) do
-	local on_state = id .. "_on"
-	local off_state = id .. "_off"
-	area_containers.all_port_variants[on_state] = {
-		mesecons = {conductor = {
-			state = "on",
-			offstate = port_name_prefix .. off_state,
-			rules = get_port_rules,
-		}},
+	area_containers.all_port_variants[id .. "_on"] = {
+		mesecons = {
+			receptor = {
+				state = mesecon_state_on,
+				rules = port_node_rules,
+			},
+			effector = {
+				action_change = port_action_change,
+				rules = {},
+			},
+		},
 	}
-	area_containers.all_port_variants[off_state] = {
-		mesecons = {conductor = {
-			state = "off",
-			onstate = port_name_prefix .. on_state,
-			rules = get_port_rules,
-		}},
+	area_containers.all_port_variants[id .. "_off"] = {
+		mesecons = {
+			receptor = {
+				state = mesecon_state_off,
+				rules = {},
+			},
+			effector = {
+				action_change = port_action_change,
+				rules = port_node_rules,
+			},
+		},
 	}
 end
 
