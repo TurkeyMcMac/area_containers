@@ -121,6 +121,9 @@ function area_containers.register_nodes()
 			container_def.groups.not_in_creative_inventory = 1
 		end
 		minetest.register_node(name, container_def)
+		if mesecon_maybe.register_mvps_stopper then
+			mesecon_maybe.register_mvps_stopper(name)
+		end
 	end
 	minetest.register_alias("area_containers:container",
 		area_containers.all_container_states[1])

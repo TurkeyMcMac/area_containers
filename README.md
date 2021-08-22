@@ -32,7 +32,7 @@ continue to work even if you uninstall and reinstall the lock.
 
 - While a container is not diggable until you empty it of nodes and objects,
   other mods may let you pick it up in order to move it. Doing so will probably
-  lead to loss of the contents. (But you _can_ push containers with pistons.)
+  lead to loss of the contents.
 - You cannot yet pass a mesecons signal from one port to another with no delay
   inbetween due to [this bug in Mesecons][5]. Other related issues may exist.
 - Only up to 65535 containers may exist at any one time.
