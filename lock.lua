@@ -30,14 +30,16 @@
    of the implementation.
 ]]
 
--- Name the private namespace and storage:
-local area_containers, storage = ...
+-- Name the private namespace:
+local AC = ...
+
+AC.depend("misc")
 
 -- Returns a unique lock ID.
 local function get_next_lock_id()
-	local lock_id = storage:get_int("next_lock_id")
+	local lock_id = AC.storage:get_int("next_lock_id")
 	-- Loop around, theoretically:
-	storage:set_int("next_lock_id", (lock_id + 1) % 281474976710656)
+	AC.storage:set_int("next_lock_id", (lock_id + 1) % 281474976710656)
 	return tostring(lock_id)
 end
 
@@ -49,13 +51,13 @@ local function user_can_use(player_name, owner)
 end
 
 -- Returns whether the given node is locked.
-function area_containers.is_locked(pos)
+function AC.is_locked(pos)
 	return minetest.get_meta(pos):contains("area_containers:lock")
 end
 
 -- Returns whether the user can enter the node according to the (possible) lock.
 -- The user may be wielding a key item.
-function area_containers.lock_allows_enter(pos, user)
+function AC.lock_allows_enter(pos, user)
 	local meta = minetest.get_meta(pos)
 	if meta:contains("area_containers:lock") and
 	   not user_can_use(user:get_player_name(), meta:get("owner")) then
@@ -69,7 +71,7 @@ function area_containers.lock_allows_enter(pos, user)
 end
 
 -- Sets the lock as the user. Returns whether doing so was successful.
-function area_containers.set_lock(pos, user)
+function AC.set_lock(pos, user)
 	local player_name = user:get_player_name()
 	local meta = minetest.get_meta(pos)
 	local owner = meta:get("owner")
@@ -89,7 +91,7 @@ function area_containers.set_lock(pos, user)
 end
 
 -- Removes the lock as the user. Returns whether doing so was successful.
-function area_containers.remove_lock(pos, user)
+function AC.remove_lock(pos, user)
 	local player_name = user:get_player_name()
 	local meta = minetest.get_meta(pos)
 	local owner = meta:get("owner")
@@ -108,7 +110,7 @@ end
 
 -- Sets up the user's wielded item as a key to the lock. Returns whether
 -- doing so was successful.
-function area_containers.fill_key(pos, user)
+function AC.fill_key(pos, user)
 	local meta = minetest.get_meta(pos)
 	if not user_can_use(user:get_player_name(), meta:get("owner")) then
 		return false

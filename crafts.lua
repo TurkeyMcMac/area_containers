@@ -18,7 +18,9 @@
 ]]
 
 -- Name the private namespace:
-local area_containers = ...
+local AC = ...
+
+AC.depend("nodes")
 
 local function register_crafts_with_ingredients(
 		container_corner, container_side, container_core,
@@ -69,21 +71,19 @@ local function register_crafts_with_ingredients(
 	end
 end
 
-function area_containers.register_crafts()
-	-- Minetest Game:
-	register_crafts_with_ingredients(
-		"default:steel_ingot", "default:steelblock", "default:mese",
-		"default:steel_ingot", "default:mese_crystal_fragment")
+-- Minetest Game:
+register_crafts_with_ingredients(
+	"default:steel_ingot", "default:steelblock", "default:mese",
+	"default:steel_ingot", "default:mese_crystal_fragment")
 
-	-- MineClone 2:
-	register_crafts_with_ingredients(
-		"mcl_core:ironblock", "mcl_core:diamond", "mesecons:redstone",
-		"mcl_core:iron_ingot", "mesecons:redstone")
+-- MineClone 2:
+register_crafts_with_ingredients(
+	"mcl_core:ironblock", "mcl_core:diamond", "mesecons:redstone",
+	"mcl_core:iron_ingot", "mesecons:redstone")
 
-	-- Key recycling:
-	minetest.register_craft({
-		output = "area_containers:key_blank",
-		type = "shapeless",
-		recipe = {"area_containers:key"},
-	})
-end
+-- Key recycling:
+minetest.register_craft({
+	output = "area_containers:key_blank",
+	type = "shapeless",
+	recipe = {"area_containers:key"},
+})

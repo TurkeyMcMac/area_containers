@@ -1,8 +1,7 @@
 --[[
    Copyright (C) 2021  Jude Melton-Houghton
 
-   This file is part of area_containers. It initializes basic stuff and
-   calls the code from the other source files.
+   This file is part of area_containers. It implements node functionality.
 
    area_containers is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published
@@ -18,28 +17,16 @@
    along with area_containers. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
--- This is a mod-private namespace for functions and stuff.
-local AC = {}
+-- Name the private namespace:
+local AC = ...
 
-local dep_statuses = {init = "loading"}
-function AC.depend(dep)
-	if dep_statuses[dep] == "loaded" then return end
-	assert(dep_statuses[dep] ~= "loading")
-	dep_statuses[dep] = "loading"
-	local path = minetest.get_modpath("area_containers") .. "/" ..
-		dep .. ".lua"
-	assert(loadfile(path))(AC)
-	dep_statuses[dep] = "loaded"
-end
-
-AC.depend("settings")
-
-if AC.settings.enable_crafts then
-	AC.depend("crafts")
-end
-AC.depend("items")
-AC.depend("nodes")
-AC.depend("protection")
-
--- No runtime dependency fetching:
-AC.depend = nil
+AC.settings = {
+	y_level_blocks = tonumber(minetest.settings:get(
+		"area_containers_y_level_blocks") or 1931),
+	enable_crafts = minetest.settings:get_bool(
+		"area_containers_enable_crafts", true),
+	max_cache_size = tonumber(minetest.settings:get(
+		"area_containers_max_cache_size") or 256),
+	wall_light = tonumber(minetest.settings:get(
+		"area_containers_wall_light") or 14),
+}

@@ -19,30 +19,28 @@
 ]]
 
 -- Name the private namespace:
-local area_containers = ...
+local AC = ...
 
-local S = minetest.get_translator("area_containers")
+AC.depend("misc")
 
-function area_containers.register_items()
-	minetest.register_craftitem("area_containers:lock", {
-		description = S("Area Container Lock"),
-		inventory_image = "area_containers_lock.png",
-		stack_max = 1,
-		node_dig_prediction = "",
-	})
+minetest.register_craftitem("area_containers:lock", {
+	description = AC.S("Area Container Lock"),
+	inventory_image = "area_containers_lock.png",
+	stack_max = 1,
+	node_dig_prediction = "",
+})
 
-	minetest.register_craftitem("area_containers:key_blank", {
-		description = S("Blank Area Container Key"),
-		inventory_image = "area_containers_key_blank.png",
-		stack_max = 1,
-		node_dig_prediction = "",
-	})
+minetest.register_craftitem("area_containers:key_blank", {
+	description = AC.S("Blank Area Container Key"),
+	inventory_image = "area_containers_key_blank.png",
+	stack_max = 1,
+	node_dig_prediction = "",
+})
 
-	minetest.register_craftitem("area_containers:key", {
-		description = S("Area Container Key"),
-		inventory_image = "area_containers_key.png",
-		groups = {not_in_creative_inventory = 1},
-		stack_max = 1,
-		node_dig_prediction = "",
-	})
-end
+minetest.register_craftitem("area_containers:key", {
+	description = AC.S("Area Container Key"),
+	inventory_image = "area_containers_key.png",
+	groups = {not_in_creative_inventory = 1},
+	stack_max = 1,
+	node_dig_prediction = "",
+})

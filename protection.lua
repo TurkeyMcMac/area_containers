@@ -25,15 +25,14 @@
 ]]
 
 -- Name the private namespace:
-local area_containers = ...
+local AC = ...
 
--- Rounds a vector component down to the nearest block size.
-local function floor_blocksize(pos)
-	return math.floor(pos / 16) * 16
-end
+AC.depend("misc")
+AC.depend("relation")
 
--- The boundaries of the protected level, set when is_protected is registered.
-local min_applicable_y, max_applicable_y = nil, nil
+-- The minimum and maximum layers at which the protection applies.
+local min_applicable_y = AC.inside_y_level - 16
+local max_applicable_y = AC.inside_y_level + 16 + 15
 
 -- Checks whether the position is protected only according to area_containers.
 -- See the overview for this file.
@@ -42,8 +41,8 @@ local function is_area_containers_protected(pos)
 	local y = pos.y
 	if y >= min_applicable_y and y <= max_applicable_y then
 		-- The minimum position of the block containing pos:
-		local block_min_pos = vector.apply(pos, floor_blocksize)
-		if area_containers.get_params_from_inside(block_min_pos) then
+		local block_min_pos = vector.apply(pos, AC.floor_blocksize)
+		if AC.get_params_from_inside(block_min_pos) then
 			-- The position is in an inside block.
 			-- Protect the walls:
 			local block_offset = vector.subtract(pos, block_min_pos)
@@ -60,33 +59,12 @@ local function is_area_containers_protected(pos)
 	return false
 end
 
--- The old minetest.is_protected. This is set when is_protected is registered.
-local old_is_protected = nil
-
--- The soon-to-be new value of minetest.is_protected.
-local function is_protected(pos, name)
+local old_is_protected = minetest.is_protected
+function minetest.is_protected(pos, name)
 	-- Apply our mod's protection unless the player can bypass it:
 	if is_area_containers_protected(pos) and
 	   not minetest.check_player_privs(name, "protection_bypass") then
 		return true
 	end
 	return old_is_protected(pos, name)
-end
-
--- Sets up the is_protected function.
-local function register()
-	-- The bounds are one block below and above the inside level:
-	min_applicable_y = area_containers.inside_y_level - 16
-	max_applicable_y = area_containers.inside_y_level + 16 + 15
-
-	old_is_protected = minetest.is_protected
-	minetest.is_protected = is_protected
-
-	register = function()
-		error("area_containers.register_is_protected called twice")
-	end
-end
-
-function area_containers.register_is_protected()
-	register()
 end
