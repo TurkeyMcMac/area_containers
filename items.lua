@@ -18,27 +18,25 @@
    along with area_containers. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
--- Name the private namespace:
-local AC = ...
-
-AC.depend("misc")
+local use = ...
+local S = use("misc", {"translate"})
 
 minetest.register_craftitem("area_containers:lock", {
-	description = AC.S("Area Container Lock"),
+	description = S("Area Container Lock"),
 	inventory_image = "area_containers_lock.png",
 	stack_max = 1,
 	node_dig_prediction = "",
 })
 
 minetest.register_craftitem("area_containers:key_blank", {
-	description = AC.S("Blank Area Container Key"),
+	description = S("Blank Area Container Key"),
 	inventory_image = "area_containers_key_blank.png",
 	stack_max = 1,
 	node_dig_prediction = "",
 })
 
 minetest.register_craftitem("area_containers:key", {
-	description = AC.S("Area Container Key"),
+	description = S("Area Container Key"),
 	inventory_image = "area_containers_key.png",
 	groups = {not_in_creative_inventory = 1},
 	stack_max = 1,

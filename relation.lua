@@ -33,20 +33,22 @@
   relations.
 ]]
 
--- Name the private namespace and storage:
-local AC = ...
+local use = ...
+local get_int_or_default, storage = use("misc", {
+	"get_int_or_default", "storage",
+})
+local settings = use("settings")
 
-AC.depend("misc")
-AC.depend("settings")
+local exports = {}
 
 -- Settings --
 
 -- The positioning settings should be multiples of 16.
 local DEFAULT_INSIDE_SPACING = 240
-local DEFAULT_Y_LEVEL = 16 * AC.settings.y_level_blocks
+local DEFAULT_Y_LEVEL = 16 * settings.y_level_blocks
 local DEFAULT_X_BASE = -30608
 local DEFAULT_Z_BASE = -30608
-local MAX_CONTAINER_CACHE_SIZE = AC.settings.max_cache_size
+local MAX_CONTAINER_CACHE_SIZE = settings.max_cache_size
 
 -- Check that the positioning settings are within bounds:
 local mod_setting_message =
@@ -67,16 +69,16 @@ assert(DEFAULT_Z_BASE + DEFAULT_INSIDE_SPACING * 255 <= mapgen_limit_rounded,
 -- Persistent Configuration --
 
 -- The period between insides measured in node lengths.
-local INSIDE_SPACING = AC.get_int_or_default(
+local INSIDE_SPACING = get_int_or_default(
 	"INSIDE_SPACING", DEFAULT_INSIDE_SPACING)
 -- The y value of all inside positions.
-local Y_LEVEL = AC.get_int_or_default("Y_LEVEL", DEFAULT_Y_LEVEL)
+local Y_LEVEL = get_int_or_default("Y_LEVEL", DEFAULT_Y_LEVEL)
 -- The minimum x and z values of all inside positions.
-local X_BASE = AC.get_int_or_default("X_BASE", DEFAULT_X_BASE)
-local Z_BASE = AC.get_int_or_default("Z_BASE", DEFAULT_Z_BASE)
+local X_BASE = get_int_or_default("X_BASE", DEFAULT_X_BASE)
+local Z_BASE = get_int_or_default("Z_BASE", DEFAULT_Z_BASE)
 -- The next param values to be allocated if no other free spaces are available.
-local param1_next = AC.get_int_or_default("param1_next", 1)
-local param2_next = AC.get_int_or_default("param2_next", 0)
+local param1_next = get_int_or_default("param1_next", 1)
+local param2_next = get_int_or_default("param2_next", 0)
 
 -- Container position caching --
 
@@ -109,7 +111,7 @@ end
 local function get_params_index(param1, param2)
 	return param1 + param2 * 256
 end
-AC.get_params_index = get_params_index
+exports.get_params_index = get_params_index
 
 -- Returns the related inside position (the minimum coordinate of the chamber.)
 local function get_related_inside(param1, param2)
@@ -119,11 +121,11 @@ local function get_related_inside(param1, param2)
 		Z_BASE + param2 * INSIDE_SPACING
 	)
 end
-AC.get_related_inside = get_related_inside
+exports.get_related_inside = get_related_inside
 
 -- Returns the two params associated with the position if it is a position that
 -- could be returned from get_related_inside, or two nil values otherwise.
-function AC.get_params_from_inside(inside_pos)
+function exports.get_params_from_inside(inside_pos)
 	if inside_pos.y ~= Y_LEVEL then return nil, nil end
 	local param1 = (inside_pos.x - X_BASE) / INSIDE_SPACING
 	local param2 = (inside_pos.z - Z_BASE) / INSIDE_SPACING
@@ -135,10 +137,10 @@ function AC.get_params_from_inside(inside_pos)
 end
 
 -- The actual Y-level (in nodes) of all inside positions (container bottoms.)
-AC.inside_y_level = Y_LEVEL
+exports.inside_y_level = Y_LEVEL
 
 -- Gets the related container position. Returns nil if it isn't set.
-function AC.get_related_container(param1, param2)
+function exports.get_related_container(param1, param2)
 	local idx = get_params_index(param1, param2)
 	local container_pos = cached_containers[idx]
 	if not container_pos then
@@ -152,7 +154,7 @@ function AC.get_related_container(param1, param2)
 end
 
 -- Sets the related container, or unsets it if container_pos is nil.
-function AC.set_related_container(param1, param2, container_pos)
+function exports.set_related_container(param1, param2, container_pos)
 	local inside_pos = get_related_inside(param1, param2)
 	local inside_meta = minetest.get_meta(inside_pos)
 	inside_meta:set_string("area_containers:container_pos",
@@ -203,15 +205,15 @@ end
 
 -- Returns a newly allocated param1, param2. Returns nil, nil if there is no
 -- space left.
-function AC.alloc_relation()
+function exports.alloc_relation()
 	local param1, param2
-	local freed = AC.storage:get_string("freed")
+	local freed = storage:get_string("freed")
 	if #freed >= PARAMS_STRING_LENGTH then
 		-- Pop a space off the freed stack if one is available.
 		param1, param2 = string_to_params(
 			string.sub(freed, -PARAMS_STRING_LENGTH))
 		freed = string.sub(freed, 1, #freed - PARAMS_STRING_LENGTH)
-		AC.storage:set_string("freed", freed)
+		storage:set_string("freed", freed)
 	elseif param2_next < 256 then
 		-- Add a new space to the pool if no space is available.
 		param1 = param1_next
@@ -222,29 +224,29 @@ function AC.alloc_relation()
 			param1_next = 0
 			param2_next = param2_next + 1
 		end
-		AC.storage:set_int("param1_next", param1_next)
-		AC.storage:set_int("param2_next", param2_next)
+		storage:set_int("param1_next", param1_next)
+		storage:set_int("param2_next", param2_next)
 	end
 	return param1, param2
 end
 
 -- Adds the relation to the freed list to be reused later.
-function AC.free_relation(param1, param2)
+function exports.free_relation(param1, param2)
 	-- Push the params:
-	local freed = AC.storage:get_string("freed")
+	local freed = storage:get_string("freed")
 	freed = freed .. params_to_string(param1, param2)
-	AC.storage:set_string("freed", freed)
+	storage:set_string("freed", freed)
 end
 
 -- Tries to reclaim the specific relation from the freed list. Returned is
 -- whether the relation could be reclaimed and removed from the freed list.
-function AC.reclaim_relation(param1, param2)
+function exports.reclaim_relation(param1, param2)
 	local find_params = params_to_string(param1, param2)
-	local freed = AC.storage:get_string("freed")
+	local freed = storage:get_string("freed")
 	-- A special case for when the reclaimed is the most recently freed:
 	if string.sub(freed, -PARAMS_STRING_LENGTH) == find_params then
 		freed = string.sub(freed, 1, #freed - PARAMS_STRING_LENGTH)
-		AC.storage:set_string("freed", freed)
+		storage:set_string("freed", freed)
 		return true
 	end
 	-- Search through all the other records backward (more recent first):
@@ -256,9 +258,11 @@ function AC.reclaim_relation(param1, param2)
 			-- Found!
 			freed = string.sub(freed, 1, start - 1) ..
 				string.sub(freed, finish + 1)
-			AC.storage:set_string("freed", freed)
+			storage:set_string("freed", freed)
 			return true
 		end
 	end
 	return false
 end
+
+return exports

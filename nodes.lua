@@ -18,14 +18,27 @@
    along with area_containers. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
--- Name the private namespace:
-local AC = ...
-
-AC.depend("container")
-AC.depend("digilines")
-AC.depend("mesecons")
-AC.depend("pipeworks")
-AC.depend("settings")
+local use = ...
+local S, null_func, merged_table,
+      MCL_BLAST_RESISTANCE_INDESTRUCTIBLE = use("misc", {
+	"translate", "null_func", "merged_table",
+	"MCL_BLAST_RESISTANCE_INDESTRUCTIBLE",
+})
+local settings = use("settings")
+local container_base, exit_base, object_counter_base = use("container", {
+	"container", "exit", "object_counter",
+})
+local container_digilines, digiline_base = use("digilines", {
+	"container", "digiline",
+})
+local container_mesecons, ports_mesecons,
+      all_container_states = use("mesecons", {
+	"container", "all_port_variants",
+	"all_container_states",
+})
+local container_pipeworks, port_pipeworks = use("pipeworks", {
+	"container", "port",
+})
 
 local mesecon_on_color = "#FCFF00"
 local mesecon_off_color = "#8A8C00"
@@ -44,16 +57,17 @@ local function outer_wire_texture(color)
 	return "(area_containers_outer_wire.png^[colorize:" .. color .. ":255)"
 end
 
-local base_wall_def = {
+local wall_base = {
 	groups = {}, -- not_in_creative_inventory will be added.
 	is_ground_content = false,
 	diggable = false,
-	on_blast = function() end,
+	on_blast = null_func,
+	_mcl_blast_resistance = MCL_BLAST_RESISTANCE_INDESTRUCTIBLE,
 }
 -- Registers the wall "area_containers:"..local_name with the definition that
 -- is merged into the base definition above.
 local function register_wall(name, def)
-	local full_def = AC.merged_table(base_wall_def, def)
+	local full_def = merged_table(wall_base, def)
 	full_def.groups = table.copy(full_def.groups)
 	full_def.groups.not_in_creative_inventory = 1
 	minetest.register_node(name, full_def)
@@ -63,6 +77,14 @@ local function register_wall(name, def)
 	end
 end
 
+-- Combine the functions into one (discarding their return values):
+local container_base_after_place_node = container_base.after_place_node
+local container_pipeworks_after_place_node =
+	container_pipeworks.after_place_node
+local function container_after_place_node(...)
+	container_base_after_place_node(...)
+	container_pipeworks_after_place_node(...)
+end
 -- The base container tiles (order: +Y, -Y, +X, -X, +Z, -Z):
 local container_tiles = {}
 -- IDs for the purpose of identifying labels:
@@ -71,7 +93,7 @@ for i, id in ipairs(container_tile_ids) do
 	container_tiles[i] = "area_containers_outer_port.png^" ..
 		"area_containers_" .. id .. ".png"
 end
--- The activations in parallel to AC.all_container_states:
+-- The activations in parallel to all_container_states:
 local container_activations = {
 	{0, 0, 0, 0}, {0, 0, 0, 1}, {0, 0, 1, 0}, {0, 0, 1, 1},
 	{0, 1, 0, 0}, {0, 1, 0, 1}, {0, 1, 1, 0}, {0, 1, 1, 1},
@@ -79,12 +101,25 @@ local container_activations = {
 	{1, 1, 0, 0}, {1, 1, 0, 1}, {1, 1, 1, 0}, {1, 1, 1, 1},
 }
 -- Register all the container nodes:
-for i, name in ipairs(AC.all_container_states) do
-	local container_def = AC.merged_table(AC.container, {
-		description = AC.S("Area Container"),
+for i, name in ipairs(all_container_states) do
+	local container_def = {
+		description = S("Area Container"),
 		tiles = table.copy(container_tiles),
-		drop = AC.all_container_states[1],
-	})
+		drop = all_container_states[1],
+		groups = merged_table(container_pipeworks.groups, {cracky = 2}),
+		on_construct = container_base.on_construct,
+		after_place_node = container_after_place_node,
+		on_destruct = container_base.on_destruct,
+		can_dig = container_base.can_dig,
+		after_dig_node = container_pipeworks.after_dig_node,
+		on_blast = null_func,
+		_mcl_blast_resistance = MCL_BLAST_RESISTANCE_INDESTRUCTIBLE,
+		on_rightclick = container_base.on_rightclick,
+		on_punch = container_base.on_punch,
+		mesecons = container_mesecons.mesecons,
+		digiline = container_digilines.digiline,
+		tube = container_pipeworks.tube,
+	}
 	if minetest.global_exists("mesecon") then
 		local activation = container_activations[i]
 		local wire_choices = {
@@ -107,8 +142,6 @@ for i, name in ipairs(AC.all_container_states) do
 	   default.node_sound_metal_defaults then
 		container_def.sounds = default.node_sound_metal_defaults()
 	end
-	container_def.groups = AC.merged_table(
-		container_def.groups or {}, {cracky = 2})
 	if i > 1 then
 		container_def.groups.not_in_creative_inventory = 1
 	end
@@ -117,17 +150,17 @@ for i, name in ipairs(AC.all_container_states) do
 		mesecon_maybe.register_mvps_stopper(name)
 	end
 end
-minetest.register_alias("area_containers:container", AC.all_container_states[1])
+minetest.register_alias("area_containers:container", all_container_states[1])
 
 register_wall("area_containers:wall", {
-	description = AC.S("Container Wall"),
-	paramtype = AC.settings.wall_light > 0 and "light" or "none",
-	light_source = math.min(AC.settings.wall_light, minetest.LIGHT_MAX),
+	description = S("Container Wall"),
+	paramtype = settings.wall_light > 0 and "light" or "none",
+	light_source = math.min(settings.wall_light, minetest.LIGHT_MAX),
 	tiles = {"area_containers_wall.png"},
 })
 
-register_wall("area_containers:exit", AC.merged_table(AC.exit, {
-	description = AC.S("Container Exit"),
+register_wall("area_containers:exit", merged_table(exit_base, {
+	description = S("Container Exit"),
 	tiles = {"area_containers_wall.png^area_containers_exit.png"},
 }))
 
@@ -136,16 +169,15 @@ if minetest.global_exists("digiline") then
 	digiline_texture = digiline_texture .. "^" ..
 		wire_texture(digiline_color)
 end
-register_wall("area_containers:digiline", AC.merged_table(AC.digiline, {
-	description = AC.S("Container's Digiline Connection"),
+register_wall("area_containers:digiline", merged_table(digiline_base, {
+	description = S("Container's Digiline Connection"),
 	tiles = {digiline_texture},
 }))
 
 -- Register all port node variants:
-for variant, def in pairs(AC.all_port_variants) do
-	local full_def = AC.merged_table(AC.port, def)
-	full_def.description =
-		AC.S("Container's Mesecon/Tube Connection")
+for variant, def in pairs(ports_mesecons) do
+	local full_def = merged_table(port_pipeworks, def)
+	full_def.description = S("Container's Mesecon/Tube Connection")
 	local tile = "area_containers_wall.png"
 	local mesecons_spec = full_def.mesecons
 	if mesecons_spec and mesecon_maybe.state then
@@ -170,8 +202,7 @@ for variant, def in pairs(AC.all_port_variants) do
 end
 
 register_wall("area_containers:object_counter",
-	AC.merged_table(AC.object_counter, {
-		description = AC.S("Misc. Controlling Node for a Container"),
+	merged_table(object_counter_base, {
+		description = S("Misc. Controlling Node for a Container"),
 		tiles = {"area_containers_wall.png"},
-	})
-)
+	}))

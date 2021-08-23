@@ -17,10 +17,8 @@
    along with area_containers. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
--- Name the private namespace:
-local AC = ...
-
-AC.depend("nodes")
+local use = ...
+use("nodes")
 
 local function register_crafts_with_ingredients(
 		container_corner, container_side, container_core,

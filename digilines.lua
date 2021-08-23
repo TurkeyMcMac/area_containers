@@ -18,14 +18,17 @@
 ]]
 
 -- Name the private namespace:
-local AC = ...
+local use = ...
+local digiline_offset = use("misc", {"digiline_offset"})
+local get_related_container, get_related_inside = use("relation", {
+	"get_related_container", "get_related_inside",
+})
 
-AC.depend("misc")
-AC.depend("relation")
+local exports = {}
 
-AC.container = AC.container or {}
+exports.container = {}
 
-AC.digiline = AC.digiline or {}
+exports.digiline = {}
 
 -- The connection rules (relative positions to link to) for the digiline node.
 local digiline_node_rules = {
@@ -35,29 +38,29 @@ local digiline_node_rules = {
 	{x = 0, y = 1, z = -1},
 }
 
-AC.container.digiline = {
+exports.container.digiline = {
 	effector = {},
 	receptor = {},
 }
 
 -- Forwards messages to the inside.
-function AC.container.digiline.effector.action(_pos, node, channel, msg)
-	local inside_pos = AC.get_related_inside(node.param1, node.param2)
-	local digiline_pos = vector.add(inside_pos, AC.digiline_offset)
+function exports.container.digiline.effector.action(_pos, node, channel, msg)
+	local inside_pos = get_related_inside(node.param1, node.param2)
+	local digiline_pos = vector.add(inside_pos, digiline_offset)
 	digiline:receptor_send(digiline_pos, digiline_node_rules, channel, msg)
 end
 
-AC.digiline = {
-	digiline = {
-		effector = {rules = digiline_node_rules},
-		receptor = {rules = digiline_node_rules},
-	}
+exports.digiline.digiline = {
+	effector = {rules = digiline_node_rules},
+	receptor = {rules = digiline_node_rules},
 }
 
 -- Forwards digiline messages to the container.
-function AC.digiline.digiline.effector.action(_pos, node, channel, msg)
-	local container_pos = AC.get_related_container(node.param1, node.param2)
+function exports.digiline.digiline.effector.action(_pos, node, channel, msg)
+	local container_pos = get_related_container(node.param1, node.param2)
 	if not container_pos then return end
 	digiline:receptor_send(container_pos, digiline.rules.default,
 		channel, msg)
 end
+
+return exports

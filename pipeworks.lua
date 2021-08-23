@@ -17,22 +17,28 @@
    along with area_containers. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
--- Name the private namespace:
-local AC = ...
+local use = ...
+local get_node_maybe_load, port_offsets, port_dirs,
+      get_port_id_from_direction, get_port_id_from_name = use("misc", {
+	"get_node_maybe_load", "port_offsets", "port_dirs",
+	"get_port_id_from_direction", "get_port_id_from_name",
+})
+local get_related_container, get_related_inside = use("relation", {
+	"get_related_container", "get_related_inside",
+})
 
-AC.depend("misc")
-AC.depend("relation")
+local exports = {}
 
-AC.container = AC.container or {}
+exports.container = {}
 
-AC.port = AC.port or {}
+exports.port = {}
 
 -- Determines whether a tube item can be inserted at the position going in the
 -- direction by checking if there's a receptacle in that direction. This works
 -- pretty much like the filter injector in Pipeworks does.
 local function can_insert(to_pos, dir)
 	local toward_pos = vector.round(vector.add(to_pos, dir))
-	local toward_node = AC.get_node_maybe_load(toward_pos)
+	local toward_node = get_node_maybe_load(toward_pos)
 	if not toward_node or
 	   not minetest.registered_nodes[toward_node.name] then
 		return false
@@ -44,23 +50,23 @@ local function can_insert(to_pos, dir)
 end
 
 if minetest.global_exists("pipeworks") and pipeworks.after_place then
-	AC.extend_func(AC.container, "after_place_node", pipeworks.after_place)
+	exports.container.after_place_node = pipeworks.after_place
 
-	AC.extend_func(AC.port, "after_place_node", pipeworks.after_place)
+	exports.port.after_place_node = pipeworks.after_place
 end
 
 if minetest.global_exists("pipeworks") and pipeworks.after_dig then
-	AC.extend_func(AC.container, "after_dig_node", pipeworks.after_dig)
+	exports.container.after_dig_node = pipeworks.after_dig
 
-	AC.extend_func(AC.port, "after_dig_node", pipeworks.after_dig)
+	exports.port.after_dig_node = pipeworks.after_dig
 end
 
-AC.container.groups = AC.merged_table(AC.container.groups or {}, {
+exports.container.groups = {
 	tubedevice = 1,
 	tubedevice_receiver = 1,
-})
+}
 
-AC.container.tube = {
+exports.container.tube = {
 	connect_sides = {
 		left = 1, right = 1,
 		back = 1, front = 1,
@@ -68,58 +74,60 @@ AC.container.tube = {
 	},
 }
 
-function AC.container.tube.can_insert(pos, node, _stack, dir)
-	local self_pos = AC.get_related_container(node.param1, node.param2)
+function exports.container.tube.can_insert(pos, node, _stack, dir)
+	local self_pos = get_related_container(node.param1, node.param2)
 	if not self_pos or not vector.equals(pos, self_pos) then
 		return false
 	end
 	if node.param1 == 0 and node.param2 == 0 then return false end
-	local inside_pos = AC.get_related_inside(node.param1, node.param2)
-	local port_id = AC.get_port_id_from_direction(vector.multiply(dir, -1))
-	local port_pos = vector.add(inside_pos, AC.port_offsets[port_id])
+	local inside_pos = get_related_inside(node.param1, node.param2)
+	local port_id = get_port_id_from_direction(vector.multiply(dir, -1))
+	local port_pos = vector.add(inside_pos, port_offsets[port_id])
 	return can_insert(port_pos, vector.new(1, 0, 0))
 end
 
-function AC.container.tube.insert_object(pos, node, stack, dir, owner)
-	local self_pos = AC.get_related_container(node.param1, node.param2)
+function exports.container.tube.insert_object(pos, node, stack, dir, owner)
+	local self_pos = get_related_container(node.param1, node.param2)
 	if not self_pos or not vector.equals(pos, self_pos) then
 		return stack
 	end
-	local inside_pos = AC.get_related_inside(node.param1, node.param2)
-	local port_id = AC.get_port_id_from_direction(vector.multiply(dir, -1))
-	local port_pos = vector.add(inside_pos, AC.port_offsets[port_id])
+	local inside_pos = get_related_inside(node.param1, node.param2)
+	local port_id = get_port_id_from_direction(vector.multiply(dir, -1))
+	local port_pos = vector.add(inside_pos, port_offsets[port_id])
 	local out_speed = math.max(vector.length(dir), 0.1)
 	local out_vel = vector.new(out_speed, 0, 0)
 	pipeworks.tube_inject_item(port_pos, port_pos, out_vel, stack, owner)
 	return ItemStack() -- All inserted.
 end
 
-AC.port.groups = AC.merged_table(AC.port.groups or {}, {
+exports.port.groups = {
 	tubedevice = 1,
 	tubedevice_receiver = 1,
-})
+}
 
-AC.port.tube = {
+exports.port.tube = {
 	connect_sides = {
 		right = 1, -- Connect to +X.
 	},
 }
 
-function AC.port.tube.can_insert(_pos, node)
-	local container_pos = AC.get_related_container(node.param1, node.param2)
+function exports.port.tube.can_insert(_pos, node)
+	local container_pos = get_related_container(node.param1, node.param2)
 	if not container_pos then return false end
-	local id = AC.get_port_id_from_name(node.name)
-	return can_insert(container_pos, AC.port_dirs[id])
+	local id = get_port_id_from_name(node.name)
+	return can_insert(container_pos, port_dirs[id])
 end
 
-function AC.port.tube.insert_object(_pos, node, stack, dir, owner)
-	local container_pos = AC.get_related_container(node.param1, node.param2)
+function exports.port.tube.insert_object(_pos, node, stack, dir, owner)
+	local container_pos = get_related_container(node.param1, node.param2)
 	if not container_pos then return stack end
-	local id = AC.get_port_id_from_name(node.name)
-	local out_dir = AC.port_dirs[id]
+	local id = get_port_id_from_name(node.name)
+	local out_dir = port_dirs[id]
 	local out_speed = math.max(vector.length(dir), 0.1)
 	local out_vel = vector.multiply(out_dir, out_speed)
 	pipeworks.tube_inject_item(container_pos, container_pos, out_vel, stack,
 		owner)
 	return ItemStack() -- All inserted.
 end
+
+return exports

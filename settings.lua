@@ -17,10 +17,7 @@
    along with area_containers. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
--- Name the private namespace:
-local AC = ...
-
-AC.settings = {
+return {
 	y_level_blocks = tonumber(minetest.settings:get(
 		"area_containers_y_level_blocks") or 1931),
 	enable_crafts = minetest.settings:get_bool(
