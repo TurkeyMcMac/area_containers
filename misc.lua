@@ -1,7 +1,9 @@
 --[[
    Copyright (C) 2021  Jude Melton-Houghton
 
-   This file is part of area_containers. It implements node functionality.
+   This file is part of area_containers. It implements miscellaneous
+   functionality that doesn't fit in the other files, much of which is
+   shared between other files.
 
    area_containers is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published
@@ -46,6 +48,8 @@ function exports.floor_blocksize(a)
 	return math.floor(a / 16) * 16
 end
 
+-- If the key is present in storage, returns its integer value. Otherwise, sets
+-- its integer value to the default and returns the default.
 function exports.get_int_or_default(key, default)
 	if storage:contains(key) then
 		return storage:get_int(key)
@@ -70,6 +74,24 @@ exports.MCL_BLAST_RESISTANCE_INDESTRUCTIBLE = 1000000
 -- The longest common prefix of all container node names.
 exports.container_name_prefix = "area_containers:container_"
 
+-- The 16 container node names counting up from off to on in binary. The bits
+-- from most to least significant are: +X, -X, +Z, -Z.
+exports.all_container_states = {}
+local all_container_variants = {
+	"off", "0001", "0010", "0011", "0100", "0101", "0110", "0111",
+	"1000", "1001", "1010", "1011", "1100", "1101", "1110", "on",
+}
+for i, variant in ipairs(all_container_variants) do
+	exports.all_container_states[i] =
+		exports.container_name_prefix .. variant
+end
+
+-- The mesecons on and off states or nil if they could not be found.
+if minetest.global_exists("mesecon") and mesecon.state then
+	exports.mesecon_state_on = mesecon.state.on
+	exports.mesecon_state_off = mesecon.state.off
+end
+
 -- The offsets of the exit and digiline nodes from the inside position
 -- (the chamber wall position with the lowest x, y, and z.)
 exports.exit_offset = vector.new(0, 2, 1)
@@ -81,6 +103,7 @@ exports.port_offsets = {
 	px = vector.new(0, 2, 8), nz = vector.new(0, 2, 10),
 	py = vector.new(0, 2, 12), ny = vector.new(0, 2, 14),
 }
+
 -- A mapping from port IDs to unit vectors encoding the directions the
 -- corresponding outside ports face.
 exports.port_dirs = {
@@ -88,6 +111,7 @@ exports.port_dirs = {
 	px = vector.new(1, 0, 0), nz = vector.new(0, 0, -1),
 	py = vector.new(0, 1, 0), ny = vector.new(0, -1, 0),
 }
+
 -- The list of horizontal port IDs in the order they appear inside,
 -- left to right.
 exports.port_ids_horiz = {"nx", "pz", "px", "nz"}
@@ -101,6 +125,15 @@ function exports.get_port_id_from_name(node_name)
 	local prefix_length = #port_name_prefix
 	return string.sub(node_name, prefix_length + 1, prefix_length + 2)
 end
+
+-- The names of all nodes that count as ports.
+exports.all_port_states = {}
+for _, id in ipairs(exports.port_ids_horiz) do
+	table.insert(exports.all_port_states, port_name_prefix .. id .. "_on")
+	table.insert(exports.all_port_states, port_name_prefix .. id .. "_off")
+end
+table.insert(exports.all_port_states, port_name_prefix .. "py_off")
+table.insert(exports.all_port_states, port_name_prefix .. "ny_off")
 
 -- Maps a tube output direction parallel to exactly one axis to the best guess
 -- of the port ID.

@@ -1,7 +1,7 @@
 --[[
    Copyright (C) 2021  Jude Melton-Houghton
 
-   This file is part of area_containers. It implements node functionality.
+   This file is part of area_containers. It implements basic container stuff.
 
    area_containers is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published
@@ -25,17 +25,11 @@
    the container. This relation is managed by relation.lua.
 
    The container lets players teleport into its inside chamber. They can leave
-   similarly with the inside exit node.
+   similarly with the inside exit node. Containers can be locked.
 
    Port nodes inside the chamber correspond to faces of the container. Pipeworks
    tubes can pass items through the ports. A mesecons signal can conduct between
    the horizontal container faces and the ports.
-
-   Digilines messages can pass unaltered between the container and the digiline
-   node inside.
-
-   NOTE: port nodes are assumed to be on the -X side of the chamber. Digiline
-   nodes are assumed to be on the floor.
 
    The container cannot be broken until it is empty of nodes and objects. While
    the inside's block is active, a special "object counter" node continuously
@@ -43,9 +37,9 @@
    break the container. Despite its name, the object counter may also perform
    other functions.
 
-   This file sets various things in the mod namespace to communicate with
-   nodes.lua. For example, AC.<node-name> will be merged into the definition of
-   <node-name>, where <node-name> is e.g. "container".
+   Like some other files, this one exports a few tables (e.g. "container") which
+   contain callbacks and other technical information for their respective nodes.
+   This information is used by nodes.lua.
 ]]
 
 local use = ...

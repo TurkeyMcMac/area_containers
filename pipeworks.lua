@@ -1,7 +1,7 @@
 --[[
    Copyright (C) 2021  Jude Melton-Houghton
 
-   This file is part of area_containers. It implements node functionality.
+   This file is part of area_containers. It implements pipeworks functionality.
 
    area_containers is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published
@@ -15,6 +15,16 @@
 
    You should have received a copy of the GNU Lesser General Public License
    along with area_containers. If not, see <https://www.gnu.org/licenses/>.
+]]
+
+--[[
+   OVERVIEW
+
+   Port nodes inside the chamber correspond to faces of the container.
+   Pipeworks tubes can pass items through the ports. NOTE: Port nodes are
+   assumed to be on the -X side of the chamber.
+
+   See also container.lua and nodes.lua.
 ]]
 
 local use = ...
@@ -52,12 +62,14 @@ end
 if minetest.global_exists("pipeworks") and pipeworks.after_place then
 	exports.container.after_place_node = pipeworks.after_place
 
+	-- This must be callable with just the position; see container.lua.
 	exports.port.after_place_node = pipeworks.after_place
 end
 
 if minetest.global_exists("pipeworks") and pipeworks.after_dig then
 	exports.container.after_dig_node = pipeworks.after_dig
 
+	-- This must be callable with just the position; see container.lua.
 	exports.port.after_dig_node = pipeworks.after_dig
 end
 

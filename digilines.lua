@@ -1,7 +1,7 @@
 --[[
    Copyright (C) 2021  Jude Melton-Houghton
 
-   This file is part of area_containers. It implements node functionality.
+   This file is part of area_containers. It implements digiline functionality.
 
    area_containers is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published
@@ -17,7 +17,15 @@
    along with area_containers. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
--- Name the private namespace:
+--[[
+   OVERVIEW
+
+   Digilines messages can pass unaltered between the container and the digiline
+   node inside. NOTE: The digiline node is assumed to be on the floor.
+
+   See also container.lua and nodes.lua.
+]]
+
 local use = ...
 local digiline_offset = use("misc", {"digiline_offset"})
 local get_related_container, get_related_inside = use("relation", {

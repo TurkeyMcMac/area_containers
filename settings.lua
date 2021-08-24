@@ -1,7 +1,7 @@
 --[[
    Copyright (C) 2021  Jude Melton-Houghton
 
-   This file is part of area_containers. It implements node functionality.
+   This file is part of area_containers. It collects the mod's settings.
 
    area_containers is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published

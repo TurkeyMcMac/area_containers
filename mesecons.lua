@@ -1,7 +1,7 @@
 --[[
    Copyright (C) 2021  Jude Melton-Houghton
 
-   This file is part of area_containers. It implements node functionality.
+   This file is part of area_containers. It implements mesecons functionality.
 
    area_containers is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published
@@ -17,11 +17,23 @@
    along with area_containers. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
+--[[
+   OVERVIEW
+
+   Port nodes inside the chamber correspond to faces of the container.
+   A Mesecons signal can conduct between the horizontal container faces and
+   the ports. NOTE: Port nodes are assumed to be on the -X side of the chamber.
+
+   See also container.lua and nodes.lua.
+]]
+
 local use = ...
-local container_name_prefix, port_name_prefix, port_offsets,
-      port_ids_horiz, get_port_id_from_name, vec2table = use("misc", {
-	"container_name_prefix", "port_name_prefix", "port_offsets",
-	"port_ids_horiz", "get_port_id_from_name", "vec2table",
+local all_container_states, port_name_prefix,
+      port_offsets, port_ids_horiz, get_port_id_from_name,
+      mesecon_state_on, mesecon_state_off, vec2table = use("misc", {
+	"all_container_states", "port_name_prefix",
+	"port_offsets", "port_ids_horiz", "get_port_id_from_name",
+	"mesecon_state_on", "mesecon_state_off", "vec2table",
 })
 local get_related_container, get_related_inside = use("relation", {
 	"get_related_container", "get_related_inside"
@@ -31,21 +43,10 @@ local exports = {}
 
 exports.container = {}
 
--- The 16 container node names counting up from off to on in binary. The bits
--- from most to least significant are: +X, -X, +Z, -Z.
-exports.all_container_states = {}
-local all_container_variants = {
-	"off", "0001", "0010", "0011", "0100", "0101", "0110", "0111",
-	"1000", "1001", "1010", "1011", "1100", "1101", "1110", "on",
-}
-for i, variant in ipairs(all_container_variants) do
-	exports.all_container_states[i] = container_name_prefix .. variant
-end
-
 -- A container is a conductor to its insides. The position of its insides can
 -- be determined from param1 and param2.
 exports.container.mesecons = {conductor = {
-	states = exports.all_container_states,
+	states = all_container_states,
 }}
 local function container_rules_add_port(rules, port_id, self_pos, inside_pos)
 	local port_pos = vector.add(inside_pos, port_offsets[port_id])
@@ -105,25 +106,22 @@ local function get_port_rules(node)
 	return rules
 end
 
--- The vertical faces don't get mesecons since it wasn't working with them.
-exports.all_port_variants = {
-	py_off = {},
-	ny_off = {},
-}
+-- mesecons information for port nodes that have it, with node names as keys.
+exports.ports = {}
 for _, id in ipairs(port_ids_horiz) do
-	local on_state = id .. "_on"
-	local off_state = id .. "_off"
-	exports.all_port_variants[on_state] = {
+	local on_state = port_name_prefix .. id .. "_on"
+	local off_state = port_name_prefix .. id .. "_off"
+	exports.ports[on_state] = {
 		mesecons = {conductor = {
-			state = "on",
-			offstate = port_name_prefix .. off_state,
+			state = mesecon_state_on,
+			offstate = off_state,
 			rules = get_port_rules,
 		}},
 	}
-	exports.all_port_variants[off_state] = {
+	exports.ports[off_state] = {
 		mesecons = {conductor = {
-			state = "off",
-			onstate = port_name_prefix .. on_state,
+			state = mesecon_state_off,
+			onstate = on_state,
 			rules = get_port_rules,
 		}},
 	}

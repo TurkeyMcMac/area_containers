@@ -1,8 +1,8 @@
 --[[
    Copyright (C) 2021  Jude Melton-Houghton
 
-   This file is part of area_containers. It specifies superficial node
-   characteristics such as textures, in addition to registering the nodes.
+   This file is part of area_containers. It registers the nodes, putting
+   together the functionality from other files.
 
    area_containers is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published
@@ -19,9 +19,11 @@
 ]]
 
 local use = ...
-local S, null_func, merged_table,
+local S, null_func, merged_table, get_port_id_from_name,
+      all_container_states, all_port_states, mesecon_state_on,
       MCL_BLAST_RESISTANCE_INDESTRUCTIBLE = use("misc", {
-	"translate", "null_func", "merged_table",
+	"translate", "null_func", "merged_table", "get_port_id_from_name",
+	"all_container_states", "all_port_states", "mesecon_state_on",
 	"MCL_BLAST_RESISTANCE_INDESTRUCTIBLE",
 })
 local settings = use("settings")
@@ -31,10 +33,8 @@ local container_base, exit_base, object_counter_base = use("container", {
 local container_digilines, digiline_base = use("digilines", {
 	"container", "digiline",
 })
-local container_mesecons, ports_mesecons,
-      all_container_states = use("mesecons", {
-	"container", "all_port_variants",
-	"all_container_states",
+local container_mesecons, ports_mesecons = use("mesecons", {
+	"container", "ports",
 })
 local container_pipeworks, port_pipeworks = use("pipeworks", {
 	"container", "port",
@@ -175,29 +175,28 @@ register_wall("area_containers:digiline", merged_table(digiline_base, {
 }))
 
 -- Register all port node variants:
-for variant, def in pairs(ports_mesecons) do
-	local full_def = merged_table(port_pipeworks, def)
+for _, name in ipairs(all_port_states) do
+	local port_mesecons = ports_mesecons[name]
+	local full_def = merged_table(port_pipeworks, port_mesecons or {})
 	full_def.description = S("Container's Mesecon/Tube Connection")
 	local tile = "area_containers_wall.png"
 	local mesecons_spec = full_def.mesecons
 	if mesecons_spec and mesecon_maybe.state then
 		-- Register correct colors for mesecons-enabled ports:
 		local color = mesecon_off_color
-		local on = mesecon_maybe.state.on
 		if mesecons_spec and mesecons_spec.conductor and
-		   mesecons_spec.conductor.state == on then
+		   mesecons_spec.conductor.state == mesecon_state_on then
 			color = mesecon_on_color
 		end
 		tile = tile .. "^" .. wire_texture(color)
 	end
-	local label_id = string.sub(variant, 1, 2)
 	tile = table.concat({
 		tile, "^",
 		"area_containers_port.png^",
-		"area_containers_", label_id, ".png",
+		"area_containers_", get_port_id_from_name(name), ".png",
 	}, "")
 	full_def.tiles = {tile}
-	register_wall("area_containers:port_" .. variant, full_def)
+	register_wall(name, full_def)
 
 end
 
