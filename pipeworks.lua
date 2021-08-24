@@ -81,11 +81,7 @@ exports.container.tube = {
 	},
 }
 
-function exports.container.tube.can_insert(pos, node, _stack, dir)
-	local self_pos = get_related_container(node.param1, node.param2)
-	if not self_pos or not vector.equals(pos, self_pos) then
-		return false
-	end
+function exports.container.tube.can_insert(_pos, node, _stack, dir)
 	if node.param1 == 0 and node.param2 == 0 then return false end
 	local inside_pos = get_related_inside(node.param1, node.param2)
 	local port_id = get_port_id_from_direction(vector.multiply(dir, -1))
@@ -93,17 +89,13 @@ function exports.container.tube.can_insert(pos, node, _stack, dir)
 	return can_insert(port_pos, vector.new(1, 0, 0))
 end
 
-function exports.container.tube.insert_object(pos, node, stack, dir, owner)
-	local self_pos = get_related_container(node.param1, node.param2)
-	if not self_pos or not vector.equals(pos, self_pos) then
-		return stack
-	end
+function exports.container.tube.insert_object(_pos, node, stack, dir, owner)
+	if node.param1 == 0 and node.param2 == 0 then return stack end
 	local inside_pos = get_related_inside(node.param1, node.param2)
 	local port_id = get_port_id_from_direction(vector.multiply(dir, -1))
 	local port_pos = vector.add(inside_pos, port_offsets[port_id])
-	local out_speed = math.max(vector.length(dir), 0.1)
-	local out_vel = vector.new(out_speed, 0, 0)
-	pipeworks.tube_inject_item(port_pos, port_pos, out_vel, stack, owner)
+	pipeworks.tube_inject_item(port_pos, port_pos, vector.new(1, 0, 0),
+		stack, owner)
 	return ItemStack() -- All inserted.
 end
 
@@ -125,15 +117,12 @@ function exports.port.tube.can_insert(_pos, node)
 	return can_insert(container_pos, port_dirs[id])
 end
 
-function exports.port.tube.insert_object(_pos, node, stack, dir, owner)
+function exports.port.tube.insert_object(_pos, node, stack, _dir, owner)
 	local container_pos = get_related_container(node.param1, node.param2)
 	if not container_pos then return stack end
 	local id = get_port_id_from_name(node.name)
-	local out_dir = port_dirs[id]
-	local out_speed = math.max(vector.length(dir), 0.1)
-	local out_vel = vector.multiply(out_dir, out_speed)
-	pipeworks.tube_inject_item(container_pos, container_pos, out_vel, stack,
-		owner)
+	pipeworks.tube_inject_item(container_pos, container_pos, port_dirs[id],
+		stack, owner)
 	return ItemStack() -- All inserted.
 end
 
