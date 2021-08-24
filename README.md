@@ -44,7 +44,7 @@ as stated in the source code files themselves.
 
 ### Images and other files not otherwise licensed
 
-These files are licensed under a [CC BY-SA 3.0 license][6].
+These files are licensed under a [CC BY-SA 3.0 license][5].
 
 They are also under the same copyright as the source files:
 
@@ -54,5 +54,4 @@ Copyright © 2021 Jude Melton-Houghton
 [2]: https://mesecons.net/
 [3]: https://mesecons.net/digilines.html
 [4]: https://gitlab.com/VanessaE/pipeworks/-/wikis/home
-[5]: https://github.com/minetest-mods/mesecons/issues/571
-[6]: https://creativecommons.org/licenses/by-sa/3.0/
+[5]: https://creativecommons.org/licenses/by-sa/3.0/
