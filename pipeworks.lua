@@ -28,9 +28,9 @@
 ]]
 
 local use = ...
-local get_node_maybe_load, port_offsets, port_dirs,
+local null_func, get_node_maybe_load, port_offsets, port_dirs,
       get_port_id_from_direction, get_port_id_from_name = use("misc", {
-	"get_node_maybe_load", "port_offsets", "port_dirs",
+	"null_func", "get_node_maybe_load", "port_offsets", "port_dirs",
 	"get_port_id_from_direction", "get_port_id_from_name",
 })
 local get_related_container, get_related_inside = use("relation", {
@@ -42,6 +42,8 @@ local exports = {}
 exports.container = {}
 
 exports.port = {}
+
+local pipeworks_maybe = minetest.global_exists("pipeworks") and pipeworks or {}
 
 -- Determines whether a tube item can be inserted at the position going in the
 -- direction by checking if there's a receptacle in that direction. This works
@@ -59,19 +61,12 @@ local function can_insert(to_pos, dir)
 			== 1
 end
 
-if minetest.global_exists("pipeworks") and pipeworks.after_place then
-	exports.container.after_place_node = pipeworks.after_place
+exports.container.after_place_node = pipeworks_maybe.after_place or null_func
+exports.container.after_dig_node = pipeworks_maybe.after_dig or null_func
 
-	-- This must be callable with just the position; see container.lua.
-	exports.port.after_place_node = pipeworks.after_place
-end
-
-if minetest.global_exists("pipeworks") and pipeworks.after_dig then
-	exports.container.after_dig_node = pipeworks.after_dig
-
-	-- This must be callable with just the position; see container.lua.
-	exports.port.after_dig_node = pipeworks.after_dig
-end
+-- These must be callable with just the position; see container.lua.
+exports.port.after_place_node = pipeworks_maybe.after_place or null_func
+exports.port.after_dig_node = pipeworks_maybe.after_dig or null_func
 
 exports.container.groups = {
 	tubedevice = 1,
