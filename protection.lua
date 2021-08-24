@@ -27,7 +27,7 @@
 local use = ...
 local floor_blocksize = use("misc", {"floor_blocksize"})
 local inside_y_level, get_params_from_inside = use("relation", {
-	"inside_y_level", "get_params_from_inside"
+	"inside_y_level", "get_params_from_inside",
 })
 
 -- The minimum and maximum layers at which the protection applies.
