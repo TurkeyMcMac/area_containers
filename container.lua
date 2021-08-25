@@ -21,8 +21,7 @@
    OVERVIEW
 
    A container node is associated with an inside chamber through its param1 and
-   param2. The active nodes in the chamber have the same params to map back to
-   the container. This relation is managed by relation.lua.
+   param2. This relation is managed by relation.lua.
 
    The container lets players teleport into its inside chamber. They can leave
    similarly with the inside exit node. Containers can be locked.
@@ -61,10 +60,10 @@ local is_locked, lock_allows_enter,
 })
 local alloc_relation, free_relation, reclaim_relation,
       set_related_container, get_related_container, get_related_inside,
-      get_params_index = use("relation", {
+      get_params_from_inside, get_params_index = use("relation", {
 	"alloc_relation", "free_relation", "reclaim_relation",
 	"set_related_container", "get_related_container", "get_related_inside",
-	"get_params_index",
+	"get_params_from_inside", "get_params_index",
 })
 
 local exports = {}
@@ -112,12 +111,10 @@ exports.object_counter = {}
 
 -- Sets up the "object counter" controller node at inside_pos. The params encode
 -- the relation.
-local function set_up_object_counter(param1, param2, inside_pos)
+local function set_up_object_counter(inside_pos)
 	-- Swap the node to keep the relation metadata:
-	minetest.swap_node(inside_pos, {
-		name = "area_containers:object_counter",
-		param1 = param1, param2 = param2,
-	})
+	minetest.swap_node(inside_pos,
+		{name = "area_containers:object_counter"})
 	-- Reset the periodically updated data, just in case:
 	local meta = minetest.get_meta(inside_pos)
 	meta:set_int("area_containers:object_count", 0)
@@ -127,23 +124,17 @@ local function set_up_object_counter(param1, param2, inside_pos)
 end
 
 -- Sets up the exit node near inside_pos. The params encode the relation.
-local function set_up_exit(param1, param2, inside_pos)
+local function set_up_exit(inside_pos)
 	local pos = vector.add(inside_pos, exit_offset)
-	minetest.set_node(pos, {
-		name = "area_containers:exit",
-		param1 = param1, param2 = param2,
-	})
+	minetest.set_node(pos, {name = "area_containers:exit"})
 	local meta = minetest.get_meta(pos)
 	meta:set_string("infotext", S("Exit"))
 end
 
 -- Sets up the digiline node near inside_pos. The params encode the relation.
-local function set_up_digiline(param1, param2, inside_pos)
+local function set_up_digiline(inside_pos)
 	local pos = vector.add(inside_pos, digiline_offset)
-	minetest.set_node(pos, {
-		name = "area_containers:digiline",
-		param1 = param1, param2 = param2,
-	})
+	minetest.set_node(pos, {name = "area_containers:digiline"})
 end
 
 -- Removes and cleans up previous inside ports if they are there.
@@ -211,9 +202,9 @@ local function construct_inside(param1, param2)
 	vm:write_to_map(true)
 
 	-- Set up the special nodes:
-	set_up_object_counter(param1, param2, inside_pos)
-	set_up_exit(param1, param2, inside_pos)
-	set_up_digiline(param1, param2, inside_pos)
+	set_up_object_counter(inside_pos)
+	set_up_exit(inside_pos)
+	set_up_digiline(inside_pos)
 	set_up_ports(param1, param2, inside_pos)
 end
 
@@ -395,18 +386,18 @@ function exports.container.can_dig(pos)
 end
 
 -- Teleports the player out of the container.
-function exports.exit.on_rightclick(_pos, node, clicker)
-	local inside_pos = get_related_inside(node.param1, node.param2)
+function exports.exit.on_rightclick(pos, _node, clicker)
+	local inside_pos = vector.subtract(pos, exit_offset)
+	local param1, param2 = get_params_from_inside(inside_pos)
 	local clicker_pos = clicker and clicker:get_pos()
-	if clicker_pos and
+	if param1 and clicker_pos and
 	   clicker_pos.x > inside_pos.x and
 	   clicker_pos.x < inside_pos.x + 15 and
 	   clicker_pos.y > inside_pos.y and
 	   clicker_pos.y < inside_pos.y + 15 and
 	   clicker_pos.z > inside_pos.z and
 	   clicker_pos.z < inside_pos.z + 15 then
-		local container_pos =
-			get_related_container(node.param1, node.param2)
+		local container_pos = get_related_container(param1, param2)
 		if container_pos then
 			local dest = vector.offset(container_pos, 0, 0.6, 0)
 			clicker:set_pos(dest)

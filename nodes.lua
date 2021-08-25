@@ -58,6 +58,8 @@ local function outer_wire_texture(color)
 end
 
 local wall_base = {
+	paramtype = settings.wall_light > 0 and "light" or "none",
+	light_source = math.min(settings.wall_light, minetest.LIGHT_MAX),
 	groups = {}, -- not_in_creative_inventory will be added.
 	is_ground_content = false,
 	diggable = false,
@@ -154,8 +156,6 @@ minetest.register_alias("area_containers:container", all_container_states[1])
 
 register_wall("area_containers:wall", {
 	description = S("Container Wall"),
-	paramtype = settings.wall_light > 0 and "light" or "none",
-	light_source = math.min(settings.wall_light, minetest.LIGHT_MAX),
 	tiles = {"area_containers_wall.png"},
 })
 
@@ -179,6 +179,8 @@ for _, name in ipairs(all_port_states) do
 	local port_mesecons = ports_mesecons[name]
 	local full_def = merged_table(port_pipeworks, port_mesecons or {})
 	full_def.description = S("Container's Mesecon/Tube Connection")
+	full_def.paramtype = "none"
+	full_def.light_source = 0
 	local tile = "area_containers_wall.png"
 	local mesecons_spec = full_def.mesecons
 	if mesecons_spec and mesecon_maybe.state then

@@ -22,7 +22,9 @@
 
    Port nodes inside the chamber correspond to faces of the container.
    A Mesecons signal can conduct between the horizontal container faces and
-   the ports. NOTE: Port nodes are assumed to be on the -X side of the chamber.
+   the ports. The port nodes have the same param1 and param2 as the container
+   node for the purpose of conductance. NOTE: Port nodes are assumed to be on
+   the -X side of the chamber.
 
    See also container.lua and nodes.lua.
 ]]

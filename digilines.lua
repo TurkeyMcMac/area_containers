@@ -28,8 +28,10 @@
 
 local use = ...
 local digiline_offset = use("misc", {"digiline_offset"})
-local get_related_container, get_related_inside = use("relation", {
+local get_related_container, get_related_inside,
+      get_params_from_inside = use("relation", {
 	"get_related_container", "get_related_inside",
+	"get_params_from_inside",
 })
 
 local exports = {}
@@ -64,8 +66,11 @@ exports.digiline.digiline = {
 }
 
 -- Forwards digiline messages to the container.
-function exports.digiline.digiline.effector.action(_pos, node, channel, msg)
-	local container_pos = get_related_container(node.param1, node.param2)
+function exports.digiline.digiline.effector.action(pos, _node, channel, msg)
+	local inside_pos = vector.subtract(pos, digiline_offset)
+	local param1, param2 = get_params_from_inside(inside_pos)
+	if not param1 then return end
+	local container_pos = get_related_container(param1, param2)
 	if not container_pos then return end
 	digiline:receptor_send(container_pos, digiline.rules.default,
 		channel, msg)
