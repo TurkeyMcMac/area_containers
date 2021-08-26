@@ -44,14 +44,10 @@
 local use = ...
 local S, get_node_maybe_load,
       EXIT_OFFSET, DIGILINE_OFFSET, PORT_OFFSETS,
-      CONTAINER_NAME_PREFIX, PORT_NAME_PREFIX,
-      get_non_player_object_count,
-      update_non_player_object_count = use("misc", {
+      CONTAINER_NAME_PREFIX, PORT_NAME_PREFIX = use("misc", {
 	"translate", "get_node_maybe_load",
 	"EXIT_OFFSET", "DIGILINE_OFFSET", "PORT_OFFSETS",
 	"CONTAINER_NAME_PREFIX", "PORT_NAME_PREFIX",
-	"get_non_player_object_count",
-	"update_non_player_object_count",
 })
 local is_locked, lock_allows_enter,
       set_lock, remove_lock, fill_key = use("lock", {
@@ -67,6 +63,34 @@ local alloc_relation, free_relation, reclaim_relation,
 })
 
 local exports = {}
+
+-- Gets the stored count of non-player objects associated with the inside.
+local function get_non_player_object_count(inside_pos)
+	local inside_meta = minetest.get_meta(inside_pos)
+	return inside_meta:get_int("area_containers:object_count")
+end
+
+-- Updates the stored count of non-player objects associated with the inside.
+-- The new count is returned. This should only be called for active blocks.
+local function update_non_player_object_count(inside_pos)
+	-- Try to limit updates to active blocks if possible:
+	if not minetest.compare_block_status or
+	   minetest.compare_block_status(inside_pos, "active") then
+		local object_count = 0
+		local objects_inside = minetest.get_objects_in_area(
+			inside_pos, vector.add(inside_pos, 15))
+		for _, object in ipairs(objects_inside) do
+			if not object:is_player() then
+				object_count = object_count + 1
+			end
+		end
+		local inside_meta = minetest.get_meta(inside_pos)
+		inside_meta:set_int("area_containers:object_count",
+			object_count)
+		return object_count
+	end
+	return get_non_player_object_count(inside_pos)
+end
 
 -- Returns whether there are any nodes or objects in the container.
 -- The object count might not be 100% accurate. The node parameter is optional.
