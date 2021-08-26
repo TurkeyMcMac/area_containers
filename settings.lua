@@ -18,12 +18,12 @@
 ]]
 
 return {
-	y_level_blocks = tonumber(minetest.settings:get(
+	Y_LEVEL_BLOCKS = tonumber(minetest.settings:get(
 		"area_containers_y_level_blocks") or 1931),
-	enable_crafts = minetest.settings:get_bool(
+	ENABLE_CRAFTS = minetest.settings:get_bool(
 		"area_containers_enable_crafts", true),
-	max_cache_size = tonumber(minetest.settings:get(
+	MAX_CACHE_SIZE = tonumber(minetest.settings:get(
 		"area_containers_max_cache_size") or 256),
-	wall_light = tonumber(minetest.settings:get(
+	WALL_LIGHT = tonumber(minetest.settings:get(
 		"area_containers_wall_light") or 14),
 }

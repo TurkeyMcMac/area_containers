@@ -28,9 +28,9 @@
 ]]
 
 local use = ...
-local null_func, get_node_maybe_load, port_offsets, port_dirs,
+local null_func, get_node_maybe_load, PORT_OFFSETS, PORT_DIRS,
       get_port_id_from_direction, get_port_id_from_name = use("misc", {
-	"null_func", "get_node_maybe_load", "port_offsets", "port_dirs",
+	"null_func", "get_node_maybe_load", "PORT_OFFSETS", "PORT_DIRS",
 	"get_port_id_from_direction", "get_port_id_from_name",
 })
 local get_related_container, get_related_inside = use("relation", {
@@ -85,7 +85,7 @@ function exports.container.tube.can_insert(_pos, node, _stack, dir)
 	if node.param1 == 0 and node.param2 == 0 then return false end
 	local inside_pos = get_related_inside(node.param1, node.param2)
 	local port_id = get_port_id_from_direction(vector.multiply(dir, -1))
-	local port_pos = vector.add(inside_pos, port_offsets[port_id])
+	local port_pos = vector.add(inside_pos, PORT_OFFSETS[port_id])
 	return can_insert(port_pos, vector.new(1, 0, 0))
 end
 
@@ -93,7 +93,7 @@ function exports.container.tube.insert_object(_pos, node, stack, dir, owner)
 	if node.param1 == 0 and node.param2 == 0 then return stack end
 	local inside_pos = get_related_inside(node.param1, node.param2)
 	local port_id = get_port_id_from_direction(vector.multiply(dir, -1))
-	local port_pos = vector.add(inside_pos, port_offsets[port_id])
+	local port_pos = vector.add(inside_pos, PORT_OFFSETS[port_id])
 	pipeworks.tube_inject_item(port_pos, port_pos, vector.new(1, 0, 0),
 		stack, owner)
 	return ItemStack() -- All inserted.
@@ -114,14 +114,14 @@ function exports.port.tube.can_insert(_pos, node)
 	local container_pos = get_related_container(node.param1, node.param2)
 	if not container_pos then return false end
 	local id = get_port_id_from_name(node.name)
-	return can_insert(container_pos, port_dirs[id])
+	return can_insert(container_pos, PORT_DIRS[id])
 end
 
 function exports.port.tube.insert_object(_pos, node, stack, _dir, owner)
 	local container_pos = get_related_container(node.param1, node.param2)
 	if not container_pos then return stack end
 	local id = get_port_id_from_name(node.name)
-	pipeworks.tube_inject_item(container_pos, container_pos, port_dirs[id],
+	pipeworks.tube_inject_item(container_pos, container_pos, PORT_DIRS[id],
 		stack, owner)
 	return ItemStack() -- All inserted.
 end

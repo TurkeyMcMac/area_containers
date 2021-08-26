@@ -26,20 +26,20 @@
 
 local use = ...
 local floor_blocksize = use("misc", {"floor_blocksize"})
-local inside_y_level, get_params_from_inside = use("relation", {
-	"inside_y_level", "get_params_from_inside",
+local INSIDE_Y_LEVEL, get_params_from_inside = use("relation", {
+	"INSIDE_Y_LEVEL", "get_params_from_inside",
 })
 
 -- The minimum and maximum layers at which the protection applies.
-local min_applicable_y = inside_y_level - 16
-local max_applicable_y = inside_y_level + 16 + 15
+local MIN_APPLICABLE_Y = INSIDE_Y_LEVEL - 16
+local MAX_APPLICABLE_Y = INSIDE_Y_LEVEL + 16 + 15
 
 -- Checks whether the position is protected only according to area_containers.
 -- See the overview for this file.
 local function is_area_containers_protected(pos)
 	-- Check that the position is within the protected level:
 	local y = pos.y
-	if y >= min_applicable_y and y <= max_applicable_y then
+	if y >= MIN_APPLICABLE_Y and y <= MAX_APPLICABLE_Y then
 		-- The minimum position of the block containing pos:
 		local block_min_pos = vector.apply(pos, floor_blocksize)
 		if get_params_from_inside(block_min_pos) then

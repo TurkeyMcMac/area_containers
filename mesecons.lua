@@ -30,12 +30,12 @@
 ]]
 
 local use = ...
-local all_container_states, port_name_prefix,
-      port_offsets, port_ids_horiz, get_port_id_from_name,
-      mesecon_state_on, mesecon_state_off, vec2table = use("misc", {
-	"all_container_states", "port_name_prefix",
-	"port_offsets", "port_ids_horiz", "get_port_id_from_name",
-	"mesecon_state_on", "mesecon_state_off", "vec2table",
+local ALL_CONTAINER_STATES, PORT_NAME_PREFIX,
+      PORT_OFFSETS, PORT_IDS_HORIZ, get_port_id_from_name,
+      MESECON_STATE_ON, MESECON_STATE_OFF, vec2table = use("misc", {
+	"ALL_CONTAINER_STATES", "PORT_NAME_PREFIX",
+	"PORT_OFFSETS", "PORT_IDS_HORIZ", "get_port_id_from_name",
+	"MESECON_STATE_ON", "MESECON_STATE_OFF", "vec2table",
 })
 local get_related_container, get_related_inside = use("relation", {
 	"get_related_container", "get_related_inside"
@@ -48,10 +48,10 @@ exports.container = {}
 -- A container is a conductor to its insides. The position of its insides can
 -- be determined from param1 and param2.
 exports.container.mesecons = {conductor = {
-	states = all_container_states,
+	states = ALL_CONTAINER_STATES,
 }}
 local function container_rules_add_port(rules, port_id, self_pos, inside_pos)
-	local port_pos = vector.add(inside_pos, port_offsets[port_id])
+	local port_pos = vector.add(inside_pos, PORT_OFFSETS[port_id])
 	local offset_to_port = vector.subtract(port_pos, self_pos)
 	rules[#rules + 1] = vec2table(offset_to_port)
 end
@@ -100,7 +100,7 @@ local function get_port_rules(node)
 	if container_pos then
 		local id = get_port_id_from_name(node.name)
 		local inside_pos = get_related_inside(node.param1, node.param2)
-		local self_pos = vector.add(inside_pos, port_offsets[id])
+		local self_pos = vector.add(inside_pos, PORT_OFFSETS[id])
 		local container_offset =
 			vector.subtract(container_pos, self_pos)
 		rules[#rules + 1] = vec2table(container_offset)
@@ -110,19 +110,19 @@ end
 
 -- mesecons information for port nodes that have it, with node names as keys.
 exports.ports = {}
-for _, id in ipairs(port_ids_horiz) do
-	local on_state = port_name_prefix .. id .. "_on"
-	local off_state = port_name_prefix .. id .. "_off"
+for _, id in ipairs(PORT_IDS_HORIZ) do
+	local on_state = PORT_NAME_PREFIX .. id .. "_on"
+	local off_state = PORT_NAME_PREFIX .. id .. "_off"
 	exports.ports[on_state] = {
 		mesecons = {conductor = {
-			state = mesecon_state_on,
+			state = MESECON_STATE_ON,
 			offstate = off_state,
 			rules = get_port_rules,
 		}},
 	}
 	exports.ports[off_state] = {
 		mesecons = {conductor = {
-			state = mesecon_state_off,
+			state = MESECON_STATE_OFF,
 			onstate = on_state,
 			rules = get_port_rules,
 		}},

@@ -56,7 +56,7 @@ local function use(dep, keys)
 	end
 end
 
-if use("settings", {"enable_crafts"}) then
+if use("settings", {"ENABLE_CRAFTS"}) then
 	use("crafts")
 end
 use("items")

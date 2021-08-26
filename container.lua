@@ -43,13 +43,13 @@
 
 local use = ...
 local S, get_node_maybe_load,
-      exit_offset, digiline_offset, port_offsets,
-      container_name_prefix, port_name_prefix,
+      EXIT_OFFSET, DIGILINE_OFFSET, PORT_OFFSETS,
+      CONTAINER_NAME_PREFIX, PORT_NAME_PREFIX,
       get_non_player_object_count,
       update_non_player_object_count = use("misc", {
 	"translate", "get_node_maybe_load",
-	"exit_offset", "digiline_offset", "port_offsets",
-	"container_name_prefix", "port_name_prefix",
+	"EXIT_OFFSET", "DIGILINE_OFFSET", "PORT_OFFSETS",
+	"CONTAINER_NAME_PREFIX", "PORT_NAME_PREFIX",
 	"get_non_player_object_count",
 	"update_non_player_object_count",
 })
@@ -72,8 +72,8 @@ local exports = {}
 -- The object count might not be 100% accurate. The node parameter is optional.
 local function container_is_empty(pos, node)
 	node = node or get_node_maybe_load(pos)
-	local name_prefix = string.sub(node.name, 1, #container_name_prefix)
-	if name_prefix ~= container_name_prefix then return true end
+	local name_prefix = string.sub(node.name, 1, #CONTAINER_NAME_PREFIX)
+	if name_prefix ~= CONTAINER_NAME_PREFIX then return true end
 	-- Invalid containers are empty:
 	if node.param1 == 0 and node.param2 == 0 then return true end
 	local inside_pos = get_related_inside(node.param1, node.param2)
@@ -125,7 +125,7 @@ end
 
 -- Sets up the exit node near inside_pos. The params encode the relation.
 local function set_up_exit(inside_pos)
-	local pos = vector.add(inside_pos, exit_offset)
+	local pos = vector.add(inside_pos, EXIT_OFFSET)
 	minetest.set_node(pos, {name = "area_containers:exit"})
 	local meta = minetest.get_meta(pos)
 	meta:set_string("infotext", S("Exit"))
@@ -133,17 +133,17 @@ end
 
 -- Sets up the digiline node near inside_pos. The params encode the relation.
 local function set_up_digiline(inside_pos)
-	local pos = vector.add(inside_pos, digiline_offset)
+	local pos = vector.add(inside_pos, DIGILINE_OFFSET)
 	minetest.set_node(pos, {name = "area_containers:digiline"})
 end
 
 -- Removes and cleans up previous inside ports if they are there.
 local function remove_previous_ports(inside_pos)
-	for _, offset in pairs(port_offsets) do
+	for _, offset in pairs(PORT_OFFSETS) do
 		local pos = vector.add(inside_pos, offset)
 		local prev = get_node_maybe_load(pos)
-		if string.sub(prev.name, 1, #port_name_prefix)
-				== port_name_prefix then
+		if string.sub(prev.name, 1, #PORT_NAME_PREFIX)
+				== PORT_NAME_PREFIX then
 			minetest.remove_node(pos)
 			local prev_def = minetest.registered_nodes[prev.name]
 			if prev_def and prev_def.after_dig_node then
@@ -155,9 +155,9 @@ end
 
 -- Sets up the port nodes near inside_pos. The params encode the relation.
 local function set_up_ports(param1, param2, inside_pos)
-	for id, offset in pairs(port_offsets) do
+	for id, offset in pairs(PORT_OFFSETS) do
 		local pos = vector.add(inside_pos, offset)
-		local name = port_name_prefix .. id .. "_off"
+		local name = PORT_NAME_PREFIX .. id .. "_off"
 		minetest.set_node(pos, {
 			name = name, param1 = param1, param2 = param2,
 		})
@@ -387,7 +387,7 @@ end
 
 -- Teleports the player out of the container.
 function exports.exit.on_rightclick(pos, _node, clicker)
-	local inside_pos = vector.subtract(pos, exit_offset)
+	local inside_pos = vector.subtract(pos, EXIT_OFFSET)
 	local param1, param2 = get_params_from_inside(inside_pos)
 	local clicker_pos = clicker and clicker:get_pos()
 	if param1 and clicker_pos and
