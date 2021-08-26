@@ -18,6 +18,7 @@
 ]]
 
 local use = ...
+use("items")
 use("nodes")
 
 local function register_crafts_with_ingredients(
