@@ -17,12 +17,33 @@
 
    You should have received a copy of the GNU Lesser General Public License
    along with area_containers. If not, see <https://www.gnu.org/licenses/>.
+
+
+   The code for determining the mapchunk position in blockpos_in_range is based
+   on some code from the Minetest project itself, specifically
+   EmergeManager::getContainingChunk in src/emerge.cpp and getContainerPos in
+   src/util/numeric.h. Both these files are provided under the terms of the
+   GNU Lesser General Public License version 2.1 or any later version.
+
+   The relevant revision of src/emerge.cpp is copyrighted as follows:
+   Copyright (C) 2010-2013 celeron55, Perttu Ahola <celeron55@gmail.com>
+   Copyright (C) 2010-2013 kwolekr, Ryan Kwolek <kwolekr@minetest.net>
+
+   The relevant revision of src/util/numeric.h is copyrighted as follows:
+   Copyright (C) 2010-2013 celeron55, Perttu Ahola <celeron55@gmail.com>
+
+   The source code of these files can be found at
+   <https://github.com/minetest/minetest/>.
 ]]
 
 local exports = {}
 
-local storage = minetest.get_mod_storage()
-exports.storage = storage
+local MAPGEN_LIMIT =
+	tonumber(minetest.get_mapgen_setting("mapgen_limit") or 31000)
+
+local CHUNKSIZE = tonumber(minetest.get_mapgen_setting("chunksize") or 5)
+
+exports.storage = minetest.get_mod_storage()
 
 exports.translate = minetest.get_translator("area_containers")
 
@@ -48,17 +69,6 @@ function exports.floor_blocksize(a)
 	return math.floor(a / 16) * 16
 end
 
--- If the key is present in storage, returns its integer value. Otherwise, sets
--- its integer value to the default and returns the default.
-function exports.get_int_or_default(key, default)
-	if storage:contains(key) then
-		return storage:get_int(key)
-	else
-		storage:set_int(key, default)
-		return default
-	end
-end
-
 -- Gets a node. If get_node fails because the position is not loaded, the
 -- position is loaded and get_node is again tried. If this fails, a table is
 -- returned with name = "ignore".
@@ -67,6 +77,33 @@ function exports.get_node_maybe_load(pos)
 	if node then return node end
 	minetest.load_area(pos)
 	return minetest.get_node(pos) -- Might be "ignore"
+end
+
+-- Returns whether the block position (NOT node position) is in-range of the
+-- map generation.
+function exports.blockpos_in_range(blockpos)
+	local chunk_offset = -math.floor(CHUNKSIZE / 2)
+	local chunkpos = vector.floor(
+		vector.divide(
+			vector.subtract(blockpos, chunk_offset),
+			CHUNKSIZE))
+	-- The chunk's minimum position minus the one-block padding:
+	local min_pos = vector.multiply(
+		vector.add(
+			vector.multiply(chunkpos, CHUNKSIZE),
+			chunk_offset - 1),
+		16)
+	if min_pos.x < -MAPGEN_LIMIT or min_pos.y < -MAPGEN_LIMIT or
+	   min_pos.z < -MAPGEN_LIMIT then
+		return false
+	end
+	-- One past chunk's maximum position:
+	local max_extent = vector.add(min_pos, (CHUNKSIZE + 1) * 16)
+	if max_extent.x > MAPGEN_LIMIT or max_extent.y > MAPGEN_LIMIT or
+	   max_extent.z > MAPGEN_LIMIT then
+		return false
+	end
+	return true
 end
 
 exports.MCL_BLAST_RESISTANCE_INDESTRUCTIBLE = 1000000

@@ -50,6 +50,11 @@ They are also under the same copyright as the source files:
 
 Copyright © 2021 Jude Melton-Houghton
 
+## Attribution
+
+As detailed at the top of misc.lua, some of the code in misc.lua is adapted from
+the Minetest project itself.
+
 [1]: https://www.minetest.net/
 [2]: https://mesecons.net/
 [3]: https://mesecons.net/digilines.html

@@ -34,51 +34,45 @@
 ]]
 
 local use = ...
-local get_int_or_default, storage = use("misc", {
-	"get_int_or_default", "storage",
+local storage, blockpos_in_range = use("misc", {"storage", "blockpos_in_range"})
+local Y_LEVEL_BLOCKS, MAX_CONTAINER_CACHE_SIZE = use("settings", {
+	"Y_LEVEL_BLOCKS", "MAX_CACHE_SIZE",
 })
-local settings = use("settings")
 
 local exports = {}
 
--- Settings --
-
--- The positioning settings should be multiples of 16.
-local DEFAULT_INSIDE_SPACING = 240
-local DEFAULT_Y_LEVEL = 16 * settings.Y_LEVEL_BLOCKS
-local DEFAULT_X_BASE = -30608
-local DEFAULT_Z_BASE = -30608
-local MAX_CONTAINER_CACHE_SIZE = settings.MAX_CACHE_SIZE
-
--- Check that the positioning settings are within bounds:
-local mod_setting_message =
-	"The setting area_containers_y_level_blocks is outside the mapgen_limit"
-local file_setting_message =
-	"A setting in this file is outside the mapgen_limit"
-local mapgen_limit_rounded = 16 * math.floor(
-	tonumber(minetest.settings:get("mapgen_limit") or 31000) / 16)
-assert(DEFAULT_Y_LEVEL >= -mapgen_limit_rounded, mod_setting_message)
-assert(DEFAULT_Y_LEVEL + 16 <= mapgen_limit_rounded, mod_setting_message)
-assert(DEFAULT_X_BASE >= -mapgen_limit_rounded, file_setting_message)
-assert(DEFAULT_X_BASE + DEFAULT_INSIDE_SPACING * 255 <= mapgen_limit_rounded,
-	file_setting_message)
-assert(DEFAULT_Z_BASE >= -mapgen_limit_rounded, file_setting_message)
-assert(DEFAULT_Z_BASE + DEFAULT_INSIDE_SPACING * 255 <= mapgen_limit_rounded,
-	file_setting_message)
-
--- Persistent Configuration --
+-- Persistent settings/state (some state isn't declared here) --
 
 -- The period between insides measured in node lengths.
-local INSIDE_SPACING = get_int_or_default(
-	"INSIDE_SPACING", DEFAULT_INSIDE_SPACING)
+local INSIDE_SPACING = tonumber(storage:get("INSIDE_SPACING") or 240)
 -- The y value of all inside positions.
-local Y_LEVEL = get_int_or_default("Y_LEVEL", DEFAULT_Y_LEVEL)
+local Y_LEVEL = tonumber(storage:get("Y_LEVEL") or (16 * Y_LEVEL_BLOCKS))
 -- The minimum x and z values of all inside positions.
-local X_BASE = get_int_or_default("X_BASE", DEFAULT_X_BASE)
-local Z_BASE = get_int_or_default("Z_BASE", DEFAULT_Z_BASE)
+local X_BASE = tonumber(storage:get("X_BASE") or -30640)
+local Z_BASE = tonumber(storage:get("Z_BASE") or -30640)
 -- The next param values to be allocated if no other free spaces are available.
-local param1_next = get_int_or_default("param1_next", 1)
-local param2_next = get_int_or_default("param2_next", 0)
+local param1_next = tonumber(storage:get("param1_next") or 1)
+local param2_next = tonumber(storage:get("param2_next") or 0)
+
+-- Check that the positioning settings are within bounds:
+assert(blockpos_in_range(vector.new(X_BASE / 16, 0, Z_BASE / 16)),
+	"The area_containers minimum position is outside the mapgen_limit")
+assert(
+	blockpos_in_range(
+		vector.new(
+			(X_BASE + INSIDE_SPACING * 255) / 16, 0,
+			(Z_BASE + INSIDE_SPACING * 255) / 16)),
+	"The area_containers maximum position is outside the mapgen_limit")
+assert(blockpos_in_range(vector.new(0, Y_LEVEL / 16, 0)),
+	"The area_containers Y-level is outside the mapgen_limit")
+
+-- Persist, any newly created values:
+storage:set_int("INSIDE_SPACING", INSIDE_SPACING)
+storage:set_int("Y_LEVEL", Y_LEVEL)
+storage:set_int("X_BASE", X_BASE)
+storage:set_int("Z_BASE", Z_BASE)
+storage:set_int("param1_next", param1_next)
+storage:set_int("param2_next", param2_next)
 
 -- Container position caching --
 

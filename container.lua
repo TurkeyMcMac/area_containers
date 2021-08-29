@@ -42,10 +42,10 @@
 ]]
 
 local use = ...
-local S, get_node_maybe_load,
+local S, get_node_maybe_load, blockpos_in_range,
       EXIT_OFFSET, DIGILINE_OFFSET, PORT_OFFSETS,
       CONTAINER_NAME_PREFIX, PORT_NAME_PREFIX = use("misc", {
-	"translate", "get_node_maybe_load",
+	"translate", "get_node_maybe_load", "blockpos_in_range",
 	"EXIT_OFFSET", "DIGILINE_OFFSET", "PORT_OFFSETS",
 	"CONTAINER_NAME_PREFIX", "PORT_NAME_PREFIX",
 })
@@ -292,17 +292,26 @@ function exports.container.on_construct(pos)
 	end
 
 	-- Generate stuff (after emergence, to prevent conflicts with mapgen):
+	local emerge_failed = false
 	local index = get_params_index(param1, param2)
 	emerging_relations[index] = {param1, param2}
-	local function after_emerge(_blockpos, action)
+	local function after_emerge_block(blockpos, action, blocks_left)
+		if action == minetest.EMERGE_ERRORED or
+		   action == minetest.EMERGE_CANCELLED then
+			-- Don't count out-of-bounds failures:
+			emerge_failed = emerge_failed or
+				blockpos_in_range(blockpos)
+		end
+
+		-- Before more can be done, all blocks must emerge:
+		if blocks_left > 0 then return end
+
 		-- Abort if the relation was somehow freed or used up:
 		if not emerging_relations[index] then return end
 
 		emerging_relations[index] = nil
 
-		-- Check that the emerge didn't fail:
-		if action == minetest.EMERGE_ERRORED or
-		   action == minetest.EMERGE_CANCELLED then
+		if emerge_failed then
 			minetest.log("error", "An emerge failure prevented " ..
 				"complete construction of " ..
 				"the area container located at " ..
@@ -332,7 +341,11 @@ function exports.container.on_construct(pos)
 	end
 	-- Start the emergence:
 	local inside_pos = get_related_inside(param1, param2)
-	minetest.emerge_area(inside_pos, inside_pos, after_emerge)
+	-- Extra blocks are emerged around the center to prevent set_lighting()
+	-- calls in mapgen from overwriting param1 values:
+	local min_emerge_pos = vector.subtract(inside_pos, 16)
+	local max_emerge_pos = vector.add(inside_pos, 16)
+	minetest.emerge_area(min_emerge_pos, max_emerge_pos, after_emerge_block)
 end
 
 function exports.container.after_place_node(pos, placer)
