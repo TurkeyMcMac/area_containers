@@ -52,10 +52,13 @@ function exports.vec2table(v)
 	return {x = v.x, y = v.y, z = v.z}
 end
 
--- Makes a new table, a deep copy of a and b, with b's keys overriding a's.
+-- Makes a new table containing the pairs of a and b, with b's overriding a's.
 function exports.merged_table(a, b)
-	local merged = table.copy(a)
-	for key, value in pairs(table.copy(b)) do
+	local merged = {}
+	for key, value in pairs(a) do
+		merged[key] = value
+	end
+	for key, value in pairs(b) do
 		merged[key] = value
 	end
 	return merged
