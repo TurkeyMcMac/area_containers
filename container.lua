@@ -64,6 +64,12 @@ local alloc_relation, free_relation, reclaim_relation,
 
 local exports = {}
 
+exports.container = {}
+
+exports.exit = {}
+
+exports.object_counter = {}
+
 -- Gets the stored count of non-player objects associated with the inside.
 local function get_non_player_object_count(inside_pos)
 	local inside_meta = minetest.get_meta(inside_pos)
@@ -126,12 +132,6 @@ local function container_is_empty(pos, node)
 
 	return true
 end
-
-exports.container = {}
-
-exports.exit = {}
-
-exports.object_counter = {}
 
 -- Sets up the "object counter" controller node at inside_pos. The params encode
 -- the relation.

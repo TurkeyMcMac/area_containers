@@ -45,6 +45,8 @@ local exports = {}
 
 exports.container = {}
 
+exports.ports = {}
+
 -- A container is a conductor to its insides. The position of its insides can
 -- be determined from param1 and param2.
 exports.container.mesecons = {conductor = {
@@ -109,7 +111,6 @@ local function get_port_rules(node)
 end
 
 -- mesecons information for port nodes that have it, with node names as keys.
-exports.ports = {}
 for _, id in ipairs(PORT_IDS_HORIZ) do
 	local on_state = PORT_NAME_PREFIX .. id .. "_on"
 	local off_state = PORT_NAME_PREFIX .. id .. "_off"

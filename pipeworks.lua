@@ -64,10 +64,6 @@ end
 exports.container.after_place_node = pipeworks_maybe.after_place or null_func
 exports.container.after_dig_node = pipeworks_maybe.after_dig or null_func
 
--- These must be callable with just the position; see container.lua.
-exports.port.after_place_node = pipeworks_maybe.after_place or null_func
-exports.port.after_dig_node = pipeworks_maybe.after_dig or null_func
-
 exports.container.groups = {
 	tubedevice = 1,
 	tubedevice_receiver = 1,
@@ -98,6 +94,10 @@ function exports.container.tube.insert_object(_pos, node, stack, dir, owner)
 		stack, owner)
 	return ItemStack() -- All inserted.
 end
+
+-- These must be callable with just the position; see container.lua.
+exports.port.after_place_node = pipeworks_maybe.after_place or null_func
+exports.port.after_dig_node = pipeworks_maybe.after_dig or null_func
 
 exports.port.groups = {
 	tubedevice = 1,
