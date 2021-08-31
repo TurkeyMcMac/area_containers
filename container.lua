@@ -166,8 +166,8 @@ local function remove_previous_ports(inside_pos)
 	for _, offset in pairs(PORT_OFFSETS) do
 		local pos = vector.add(inside_pos, offset)
 		local prev = get_node_maybe_load(pos)
-		if string.sub(prev.name, 1, #PORT_NAME_PREFIX)
-				== PORT_NAME_PREFIX then
+		if string.sub(prev.name, 1, #PORT_NAME_PREFIX) ==
+				PORT_NAME_PREFIX then
 			minetest.remove_node(pos)
 			local prev_def = minetest.registered_nodes[prev.name]
 			if prev_def and prev_def.after_dig_node then
