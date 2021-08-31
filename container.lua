@@ -410,7 +410,13 @@ function exports.container.on_rightclick(pos, node, clicker)
 		local self_pos = get_related_container(node.param1, node.param2)
 		-- Make sure the clicker will be able to get back:
 		if self_pos and vector.equals(pos, self_pos) then
-			local dest = vector.offset(inside_pos, 1, 0.6, 1)
+			local props = clicker:get_properties() or {}
+			local box_min = props.collisionbox or {-0.5, 0, -0.5}
+			-- Place the clicker fully inside with some extra space:
+			local dest = vector.offset(inside_pos,
+				0.5 - math.min(box_min[1] - 0.02, -0.5),
+				0.5 - math.min(box_min[2] - 0.02, 0),
+				0.5 - math.min(box_min[3] - 0.02, -0.5))
 			clicker:set_pos(dest)
 		end
 	end
@@ -436,7 +442,11 @@ function exports.exit.on_rightclick(pos, _node, clicker)
 	   clicker_pos.z < inside_pos.z + 15 then
 		local container_pos = get_related_container(param1, param2)
 		if container_pos then
-			local dest = vector.offset(container_pos, 0, 0.6, 0)
+			local props = clicker:get_properties() or {}
+			local min_y = (props.collisionbox or {[2] = 0})[2]
+			-- Place the clicker fully on top with some extra space:
+			local dest = vector.offset(container_pos,
+				0, 0.5 - math.min(min_y - 0.02, 0), 0)
 			clicker:set_pos(dest)
 		end
 
