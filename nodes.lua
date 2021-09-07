@@ -108,7 +108,11 @@ for i, name in ipairs(ALL_CONTAINER_STATES) do
 		description = S("Area Container"),
 		tiles = table.copy(container_tiles),
 		drop = ALL_CONTAINER_STATES[1],
-		groups = merged_table(container_pipeworks.groups, {cracky = 2}),
+		groups = merged_table(container_pipeworks.groups, {
+			cracky = 2,
+			pickaxey = 2,
+		}),
+		_mcl_hardness = 5,
 		on_construct = container_base.on_construct,
 		after_place_node = container_after_place_node,
 		on_destruct = container_base.on_destruct,
@@ -143,6 +147,9 @@ for i, name in ipairs(ALL_CONTAINER_STATES) do
 	if minetest.global_exists("default") and
 	   default.node_sound_metal_defaults then
 		container_def.sounds = default.node_sound_metal_defaults()
+	elseif minetest.global_exists("mcl_sounds") and
+	       mcl_sounds.node_sound_metal_defaults then
+		container_def.sounds = mcl_sounds.node_sound_metal_defaults()
 	end
 	if i > 1 then
 		container_def.groups.not_in_creative_inventory = 1
