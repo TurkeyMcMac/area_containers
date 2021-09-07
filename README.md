@@ -30,6 +30,8 @@ continue to work even if you uninstall and reinstall the lock.
 
 ## Caveats
 
+- Due to an unfortunate technical limitation, area containers cannot be moved
+  by pistons.
 - While a container is not diggable until you empty it of nodes and objects,
   other mods may let you pick it up in order to move it. Doing so will probably
   lead to loss of the contents.
