@@ -63,8 +63,8 @@ local function register_crafts_with_ingredients(
 		minetest.register_craft({
 			output = "area_containers:key_blank",
 			recipe = {
-				{item_body, item_body, item_core},
-				{item_body, ""       , ""       },
+				{item_body, item_body, item_body},
+				{item_core, ""       , ""       },
 			},
 		})
 	end
