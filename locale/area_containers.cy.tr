@@ -1,0 +1,13 @@
+# textdomain: area_containers
+Area Container Key=Allwedd Gynhwysydd Ardal
+Area Container Lock=Clo Cynhwysydd Ardal
+Area Container=Cynhwysydd Ardal
+Blank Area Container Key=Allwedd Wag Gynhwysydd Ardal
+Broken Area Container=Cynhwysydd Ardal Toredig
+Digiline Connector=Cysylltydd Digiline
+Exit=Mynediad Allan
+Key to @1's Area Container=Allwedd Gynhwysydd Ardal @1
+Locked Area Container (owned by @1)=Cynhwysydd Ardal ar Glo (sy'n eiddo i @1)
+Mesecon/Tube Connector=Cysylltydd Mesecon/Pib
+Miscellaneous Controller=Rheolwr Amrywiol
+Wall=Mur
