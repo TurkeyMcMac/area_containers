@@ -1,0 +1,13 @@
+# textdomain: area_containers
+Area Container Key=
+Area Container Lock=
+Area Container=
+Blank Area Container Key=
+Broken Area Container=
+Digiline Connector=
+Exit=
+Key to @1's Area Container=
+Locked Area Container (owned by @1)=
+Mesecon/Tube Connector=
+Miscellaneous Controller=
+Wall=
