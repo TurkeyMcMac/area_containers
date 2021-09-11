@@ -162,12 +162,12 @@ end
 minetest.register_alias("area_containers:container", ALL_CONTAINER_STATES[1])
 
 register_wall("area_containers:wall", {
-	description = S("Container Wall"),
+	description = S("Wall"),
 	tiles = {"area_containers_wall.png"},
 })
 
 register_wall("area_containers:exit", merged_table(exit_base, {
-	description = S("Container Exit"),
+	description = S("Exit"),
 	tiles = {"area_containers_wall.png^area_containers_exit.png"},
 }))
 
@@ -177,7 +177,7 @@ if minetest.global_exists("digiline") then
 		wire_texture(DIGILINE_COLOR)
 end
 register_wall("area_containers:digiline", merged_table(digiline_base, {
-	description = S("Container's Digiline Connection"),
+	description = S("Digiline Connector"),
 	tiles = {digiline_texture},
 }))
 
@@ -185,7 +185,7 @@ register_wall("area_containers:digiline", merged_table(digiline_base, {
 for _, name in ipairs(ALL_PORT_STATES) do
 	local port_mesecons = ports_mesecons[name]
 	local full_def = merged_table(port_pipeworks, port_mesecons or {})
-	full_def.description = S("Container's Mesecon/Tube Connection")
+	full_def.description = S("Mesecon/Tube Connector")
 	full_def.paramtype = "none"
 	full_def.light_source = 0
 	local tile = "area_containers_wall.png"
@@ -211,6 +211,6 @@ end
 
 register_wall("area_containers:object_counter",
 	merged_table(object_counter_base, {
-		description = S("Misc. Controlling Node for a Container"),
+		description = S("Miscellaneous Controller"),
 		tiles = {"area_containers_wall.png"},
 	}))
