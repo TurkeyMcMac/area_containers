@@ -1,5 +1,6 @@
 --[[
    Copyright (C) 2021  Jude Melton-Houghton
+   (Copyright notices for borrowed code are later in this comment.)
 
    This file is part of area_containers. It implements miscellaneous
    functionality that doesn't fit in the other files, much of which is
