@@ -1,0 +1,13 @@
+# textdomain: area_containers
+Area Container Key=Raumbehälterschlüssel
+Area Container Lock=Raumbehälterschloss
+Area Container=Raumbehälter
+Blank Area Container Key=Leerer Raumbehälterschlüssel
+Broken Area Container=Gebrochener Raumbehälter
+Digiline Connector=Digiline-Anschluss
+Exit=Ausgang
+Key to @1's Area Container=Schlüssel zum Raumbehälter von @1
+Locked Area Container (owned by @1)=Verschlossener Raumbehälter (im Besitz von @1)
+Mesecon/Tube Connector=Mesecon-/Rohrverbinder
+Miscellaneous Controller=Sonstiger Regler
+Wall=Wand
