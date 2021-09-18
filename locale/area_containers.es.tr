@@ -1,0 +1,13 @@
+# textdomain: area_containers
+Area Container Key=Llave de Contenedor de Área
+Area Container Lock=Cerradura de Contenedor de Área
+Area Container=Contenedor de Área
+Blank Area Container Key=Llave Virgen de Contenedor de Área
+Broken Area Container=Contenedor de Área Roto
+Digiline Connector=Conector Digiline
+Exit=Salida
+Key to @1's Area Container=Llave al Contenedor de Área de @1
+Locked Area Container (owned by @1)=Contenedor de Área Cerrado (propiedad de @1)
+Mesecon/Tube Connector=Conector de Mesecon/Tubo
+Miscellaneous Controller=Controlador Misceláneo
+Wall=Pared
