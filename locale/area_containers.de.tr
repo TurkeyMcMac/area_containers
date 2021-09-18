@@ -1,7 +1,7 @@
 # textdomain: area_containers
+Area Container=Raumbehälter
 Area Container Key=Raumbehälterschlüssel
 Area Container Lock=Raumbehälterschloss
-Area Container=Raumbehälter
 Blank Area Container Key=Leerer Raumbehälterschlüssel
 Broken Area Container=Gebrochener Raumbehälter
 Digiline Connector=Digiline-Anschluss
