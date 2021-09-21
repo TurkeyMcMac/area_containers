@@ -1,13 +1,13 @@
 # textdomain: area_containers
-Area Container Key=Clé de Conteneur à Région
-Area Container Lock=Serrure de Conteneur à Région
-Area Container=Conteneur à Région
-Blank Area Container Key=Clé Vierge de Conteneur à Région
-Broken Area Container=Conteneur à Région Cassé
+Area Container Key=Clé de Conteneur de Région
+Area Container Lock=Serrure de Conteneur de Région
+Area Container=Conteneur de Région
+Blank Area Container Key=Clé Vierge de Conteneur de Région
+Broken Area Container=Conteneur de Région Cassé
 Digiline Connector=Connecteur Digiline
 Exit=Porte de Sortie
-Key to @1's Area Container=Clé au Conteneur à Région de 1@
-Locked Area Container (owned by @1)=Conteneur à Région Verrouillé
+Key to @1's Area Container=Clé au Conteneur de Région de 1@
+Locked Area Container (owned by @1)=Conteneur de Région Verrouillé (appartenant à 1@)
 Mesecon/Tube Connector=Connecteur Mesecon/Tube
 Miscellaneous Controller=Contrôleur Divers
 Wall=Mur
