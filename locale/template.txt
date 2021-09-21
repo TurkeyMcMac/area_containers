@@ -1,7 +1,7 @@
 # textdomain: area_containers
+Area Container=
 Area Container Key=
 Area Container Lock=
-Area Container=
 Blank Area Container Key=
 Broken Area Container=
 Digiline Connector=
