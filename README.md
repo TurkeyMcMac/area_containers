@@ -57,8 +57,12 @@ Copyright © 2021 Jude Melton-Houghton
 As detailed at the top of misc.lua, some of the code in misc.lua is adapted from
 the Minetest project itself.
 
+The translations for French, German, Spanish, and Welsh are by David Houghton
+([dfhoughton][6]).
+
 [1]: https://www.minetest.net/
 [2]: https://mesecons.net/
 [3]: https://mesecons.net/digilines.html
 [4]: https://gitlab.com/VanessaE/pipeworks/-/wikis/home
 [5]: https://creativecommons.org/licenses/by-sa/3.0/
+[6]: https://github.com/dfhoughton
