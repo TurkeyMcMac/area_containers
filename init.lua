@@ -48,8 +48,6 @@ local function use(dep, keys)
 		for i, key in ipairs(keys) do
 			values[i] = returned[key]
 		end
-		-- The location of unpack() may depend on the Lua version:
-		local unpack = unpack or table.unpack
 		return unpack(values, 1, #keys)
 	else
 		return returned
