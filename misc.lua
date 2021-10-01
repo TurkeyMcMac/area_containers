@@ -40,9 +40,9 @@
 local exports = {}
 
 local MAPGEN_LIMIT =
-	tonumber(minetest.get_mapgen_setting("mapgen_limit") or 31000)
+	tonumber(minetest.get_mapgen_setting("mapgen_limit")) or 31000
 
-local CHUNKSIZE = tonumber(minetest.get_mapgen_setting("chunksize") or 5)
+local CHUNKSIZE = tonumber(minetest.get_mapgen_setting("chunksize")) or 5
 
 exports.storage = minetest.get_mod_storage()
 
