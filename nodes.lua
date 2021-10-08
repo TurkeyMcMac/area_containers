@@ -113,6 +113,7 @@ for i, name in ipairs(ALL_CONTAINER_STATES) do
 			pickaxey = 2,
 		}),
 		_mcl_hardness = 5,
+		is_ground_content = false,
 		on_construct = container_base.on_construct,
 		after_place_node = container_after_place_node,
 		on_destruct = container_base.on_destruct,
