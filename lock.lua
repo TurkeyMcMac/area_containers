@@ -31,16 +31,15 @@
 ]]
 
 local use = ...
-local storage = use("misc", {"storage"})
+local rng = use("misc", {"rng"})
 
 local exports = {}
 
 -- Returns a unique lock ID.
 local function get_next_lock_id()
-	local lock_id = storage:get_int("next_lock_id")
-	-- Loop around, theoretically:
-	storage:set_int("next_lock_id", (lock_id + 1) % 281474976710656)
-	return tostring(lock_id)
+	-- Generate 64 random bits and encode them in hexadecimal:
+	return string.format("%08x%08x",
+		rng:next() + 2147483648, rng:next() + 2147483648)
 end
 
 -- Returns whether the named player is an admin of the node owned as given.

@@ -46,6 +46,13 @@ local CHUNKSIZE = tonumber(minetest.get_mapgen_setting("chunksize")) or 5
 
 exports.storage = minetest.get_mod_storage()
 
+-- A randomly seeded instance of PcgRandom. I'm just trying to mix up a few
+-- entropy sources here.
+exports.rng = PcgRandom(math.random(0, 32767))
+exports.rng = PcgRandom(math.random(0, 32767) + exports.rng:next())
+exports.rng = PcgRandom(os.time() + exports.rng:next())
+exports.rng = PcgRandom(os.clock() + exports.rng:next())
+
 exports.translate = minetest.get_translator("area_containers")
 
 -- Converts a vector (with or without a metatable) into a plain table.
