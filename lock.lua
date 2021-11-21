@@ -39,7 +39,8 @@ local exports = {}
 local function get_next_lock_id()
 	-- Generate 64 random bits and encode them in hexadecimal:
 	return string.format("%08x%08x",
-		rng:next() + 2147483648, rng:next() + 2147483648)
+		rng:next() + 2147483648,
+		rng:next(0, 131071) * 32768 + math.random(0, 32767))
 end
 
 -- Returns whether the named player is an admin of the node owned as given.
