@@ -32,6 +32,8 @@ continue to work even if you uninstall and reinstall the lock.
 
 - Due to an unfortunate technical limitation, area containers cannot be moved
   by pistons.
+- This mod does not load the insides of containers without players in them.
+  If you need this feature, you can use the world anchor node from Technic.
 - While a container is not diggable until you empty it of nodes and objects,
   other mods may let you pick it up in order to move it. Doing so will probably
   lead to loss of the contents.
