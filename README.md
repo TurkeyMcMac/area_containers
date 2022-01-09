@@ -65,6 +65,6 @@ The translations for French, German, Spanish, and Welsh are by David Houghton
 [1]: https://www.minetest.net/
 [2]: https://mesecons.net/
 [3]: https://mesecons.net/digilines.html
-[4]: https://gitlab.com/VanessaE/pipeworks/-/wikis/home
+[4]: https://github.com/mt-mods/pipeworks
 [5]: https://creativecommons.org/licenses/by-sa/3.0/
 [6]: https://github.com/dfhoughton
