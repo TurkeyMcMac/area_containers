@@ -440,6 +440,11 @@ function exports.exit.on_rightclick(pos, _node, clicker)
 	   clicker_pos.y < inside_pos.y + 15 and
 	   clicker_pos.z > inside_pos.z and
 	   clicker_pos.z < inside_pos.z + 15 then
+		-- Update the count before the block is deactivated:
+		if clicker:is_player() then
+			update_non_player_object_count(inside_pos)
+		end
+
 		local container_pos = get_related_container(param1, param2)
 		if container_pos then
 			local props = clicker:get_properties() or {}
@@ -448,11 +453,6 @@ function exports.exit.on_rightclick(pos, _node, clicker)
 			local dest = vector.offset(container_pos,
 				0, 0.5 - math.min(min_y - 0.02, 0), 0)
 			clicker:set_pos(dest)
-		end
-
-		-- Update the count before the block is deactivated:
-		if minetest.is_player(clicker) then
-			update_non_player_object_count(inside_pos)
 		end
 	end
 end
