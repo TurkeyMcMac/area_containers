@@ -7,8 +7,10 @@
 This is a mod for [Minetest][1]. It implements an "area container," that is,
 a node that holds an area in which you can walk around and build stuff. The
 structures in the container can communicate with the outside using
-[Mesecons][2] and/or [Digilines][3]. Items can pass in and out through tubes
+[Mesecons][2] and/or [Digilines][3]\*. Items can pass in and out through tubes
 from the [Pipeworks][4] mod.
+
+\* Digilines can only be used if the "mesecons" mod is also enabled.
 
 ## Locking
 

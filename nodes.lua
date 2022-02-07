@@ -124,7 +124,7 @@ for i, name in ipairs(ALL_CONTAINER_STATES) do
 		on_rightclick = container_base.on_rightclick,
 		on_punch = container_base.on_punch,
 		mesecons = container_mesecons.mesecons,
-		digiline = container_digilines.digiline,
+		digilines = container_digilines.digilines,
 		tube = container_pipeworks.tube,
 	}
 	if minetest.global_exists("mesecon") then
