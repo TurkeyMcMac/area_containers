@@ -1,7 +1,7 @@
-std = "min"
+std = "lua51c"
 read_globals = {
 	"default", "digilines", "ItemStack", "mcl_sounds", "mesecon",
-	"minetest", "PcgRandom", "pipeworks", "table.copy", "unpack",
+	"minetest", "PcgRandom", "pipeworks", "table.copy",
 	"VoxelArea", "vector",
 }
 globals = {"minetest.is_protected"}
