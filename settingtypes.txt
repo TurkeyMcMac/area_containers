@@ -27,3 +27,10 @@ area_containers_max_cache_size (Maximum container cache size) int 256 1 65536
 
 # The level of light the walls of inside chambers emit, from 0 to 14. 0 means that no light is emitted. Changing this with preexisting containers will cause incorrect lighting.
 area_containers_wall_light (Wall light) int 14 0 14
+
+# The level of protection around inside chambers:
+# - none: Protect nothing.
+# - walls: Protect the walls of the chambers only.
+# - around: Protect the walls and the 26 blocks around the inside chamber block.
+# - layer: Protect the walls and all outside blocks from one block below the inside layer to one above.
+area_containers_protection (Protection) enum layer none,walls,around,layer

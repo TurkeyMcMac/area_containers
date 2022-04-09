@@ -25,14 +25,58 @@
 ]]
 
 local use = ...
+local PROTECTION_TYPE = use("settings", {"PROTECTION"})
 local floor_blocksize = use("misc", {"floor_blocksize"})
 local INSIDE_Y_LEVEL, get_params_from_inside = use("relation", {
 	"INSIDE_Y_LEVEL", "get_params_from_inside",
 })
 
+if PROTECTION_TYPE == "none" then return end
+
+-- Protection settings. PADDING indicates that blocks around inside blocks are
+-- also protected.
+local LAYER = PROTECTION_TYPE == "layer"
+local AROUND = PROTECTION_TYPE == "around"
+local PADDING = LAYER or AROUND
+
 -- The minimum and maximum layers at which the protection applies.
-local MIN_APPLICABLE_Y = INSIDE_Y_LEVEL - 16
-local MAX_APPLICABLE_Y = INSIDE_Y_LEVEL + 16 + 15
+local MIN_APPLICABLE_Y = PADDING and INSIDE_Y_LEVEL - 16 or INSIDE_Y_LEVEL
+local MAX_APPLICABLE_Y = PADDING and INSIDE_Y_LEVEL + 16 + 15 or
+	INSIDE_Y_LEVEL + 15
+
+-- Determines whether the block is one of the 26 around an inside block and
+-- should thus be protected with protection type "around".
+-- Modifies block_min_pos.
+local function pos_around(block_min_pos)
+	if block_min_pos.y > INSIDE_Y_LEVEL then
+		block_min_pos.y = block_min_pos.y - 16
+		if get_params_from_inside(block_min_pos) then return true end
+	elseif block_min_pos.y < INSIDE_Y_LEVEL then
+		block_min_pos.y = block_min_pos.y + 16
+		if get_params_from_inside(block_min_pos) then return true end
+	end
+
+	block_min_pos.x = block_min_pos.x + 16
+	if get_params_from_inside(block_min_pos) then return true end
+	block_min_pos.z = block_min_pos.z + 16
+	if get_params_from_inside(block_min_pos) then return true end
+	block_min_pos.x = block_min_pos.x - 16
+	if get_params_from_inside(block_min_pos) then return true end
+	block_min_pos.x = block_min_pos.x - 16
+	if get_params_from_inside(block_min_pos) then return true end
+	block_min_pos.z = block_min_pos.z - 16
+	if get_params_from_inside(block_min_pos) then return true end
+	block_min_pos.z = block_min_pos.z - 16
+	if get_params_from_inside(block_min_pos) then return true end
+	block_min_pos.x = block_min_pos.x + 16
+	if get_params_from_inside(block_min_pos) then return true end
+	block_min_pos.x = block_min_pos.x + 16
+	if get_params_from_inside(block_min_pos) then return true end
+
+	return false
+end
+-- If not AROUND, the function is never used.
+if not AROUND then pos_around = nil end
 
 -- Checks whether the position is protected only according to area_containers.
 -- See the overview for this file.
@@ -51,9 +95,13 @@ local function is_area_containers_protected(pos)
 			   block_offset.z == 0 or block_offset.z == 15 then
 				return true
 			end
-		else
-			-- Non-inside blocks in the layer are protected.
-			return true
+		elseif PADDING then
+			if LAYER then
+				-- Non-inside blocks in the layer are protected.
+				return true
+			else
+				return pos_around(block_min_pos)
+			end
 		end
 	end
 	return false

@@ -17,7 +17,7 @@
    along with area_containers. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
-return {
+local settings = {
 	Y_LEVEL_BLOCKS = tonumber(minetest.settings:get(
 		"area_containers_y_level_blocks")) or 1931,
 	ENABLE_CRAFTS = minetest.settings:get_bool(
@@ -26,4 +26,11 @@ return {
 		"area_containers_max_cache_size")) or 256,
 	WALL_LIGHT = tonumber(minetest.settings:get(
 		"area_containers_wall_light")) or 14,
+	PROTECTION = minetest.settings:get("area_containers_protection"),
 }
+if settings.PROTECTION ~= "none" and settings.PROTECTION ~= "walls" and
+		settings.PROTECTION ~= "around" then
+	settings.PROTECTION = "layer"
+end
+
+return settings
