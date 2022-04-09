@@ -123,6 +123,7 @@ for i, name in ipairs(ALL_CONTAINER_STATES) do
 		_mcl_blast_resistance = MCL_BLAST_RESISTANCE_INDESTRUCTIBLE,
 		on_rightclick = container_base.on_rightclick,
 		on_punch = container_base.on_punch,
+		on_movenode = container_base.on_movenode,
 		mesecons = container_mesecons.mesecons,
 		digilines = container_digilines.digilines,
 		tube = container_pipeworks.tube,

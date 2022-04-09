@@ -428,6 +428,11 @@ function exports.container.can_dig(pos)
 	return not is_locked(pos) and container_is_empty(pos)
 end
 
+function exports.container.on_movenode(_from_pos, to_pos)
+	local node = get_node_maybe_load(to_pos)
+	set_related_container(node.param1, node.param2, to_pos)
+end
+
 -- Teleports the player out of the container.
 function exports.exit.on_rightclick(pos, _node, clicker)
 	local inside_pos = vector.subtract(pos, EXIT_OFFSET)
