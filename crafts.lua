@@ -21,51 +21,38 @@ local use = ...
 use("items")
 use("nodes")
 
+local registered_crafts = {}
+local function register_craft_once(output, recipe)
+	if not registered_crafts[output] then
+		minetest.register_craft({output = output, recipe = recipe})
+		registered_crafts[output] = true
+	end
+end
+
 local function register_crafts_with_ingredients(
 		container_corner, container_side, container_core,
 		item_body, item_core)
 	if minetest.registered_items[container_corner] and
 	   minetest.registered_items[container_side] and
 	   minetest.registered_items[container_core] then
-		minetest.register_craft({
-			output = "area_containers:container",
-			recipe = {
-				{
-					container_corner,
-					container_side,
-					container_corner,
-				},
-				{
-					container_side,
-					container_core,
-					container_side,
-				},
-				{
-					container_corner,
-					container_side,
-					container_corner,
-				},
-			},
+		register_craft_once("area_containers:container", {
+			{container_corner, container_side, container_corner},
+			{container_side  , container_core, container_side  },
+			{container_corner, container_side, container_corner},
 		})
 	end
 
 	if minetest.registered_items[item_body] and
 	   minetest.registered_items[item_core] then
-		minetest.register_craft({
-			output = "area_containers:lock",
-			recipe = {
-				{item_body, ""       },
-				{item_core, item_body},
-				{item_body, item_body},
-			},
+		register_craft_once("area_containers:lock", {
+			{item_body, ""       },
+			{item_core, item_body},
+			{item_body, item_body},
 		})
 
-		minetest.register_craft({
-			output = "area_containers:key_blank",
-			recipe = {
-				{item_body, item_body, item_body},
-				{item_core, ""       , ""       },
-			},
+		register_craft_once("area_containers:key_blank", {
+			{item_body, item_body, item_body},
+			{item_core, ""       , ""       },
 		})
 	end
 end
@@ -74,6 +61,11 @@ end
 register_crafts_with_ingredients(
 	"default:steel_ingot", "default:steelblock", "default:mese",
 	"default:steel_ingot", "default:mese_crystal_fragment")
+
+-- Zero modpack:
+register_crafts_with_ingredients(
+	"zr_iron:ingot", "zr_iron:block", "zr_mese:block",
+	"zr_iron:ingot", "zr_mese:crystal_fragment")
 
 -- MineClone 2:
 register_crafts_with_ingredients(

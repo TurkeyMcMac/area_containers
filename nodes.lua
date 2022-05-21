@@ -149,6 +149,8 @@ for i, name in ipairs(ALL_CONTAINER_STATES) do
 	if minetest.global_exists("default") and
 	   default.node_sound_metal_defaults then
 		container_def.sounds = default.node_sound_metal_defaults()
+	elseif minetest.global_exists("zr_metal") then
+		container_def.sounds = zr_metal.sounds
 	elseif minetest.global_exists("mcl_sounds") and
 	       mcl_sounds.node_sound_metal_defaults then
 		container_def.sounds = mcl_sounds.node_sound_metal_defaults()
