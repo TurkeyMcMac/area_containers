@@ -139,6 +139,7 @@ function exports.get_related_container(param1, param2)
 	local container_pos = cached_containers[idx]
 	if not container_pos then
 		local inside_pos = get_related_inside(param1, param2)
+		minetest.load_area(inside_pos)
 		local inside_meta = minetest.get_meta(inside_pos)
 		container_pos = minetest.string_to_pos(
 			inside_meta:get_string("area_containers:container_pos"))
