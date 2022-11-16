@@ -64,9 +64,12 @@ the Minetest project itself.
 The translations for French, German, Spanish, and Welsh are by David Houghton
 ([dfhoughton][6]).
 
+The Esperanto translation is by [jolesh][7].
+
 [1]: https://www.minetest.net/
 [2]: https://mesecons.net/
 [3]: https://mesecons.net/digilines.html
 [4]: https://github.com/mt-mods/pipeworks
 [5]: https://creativecommons.org/licenses/by-sa/3.0/
 [6]: https://github.com/dfhoughton
+[7]: https://github.com/jolesh
