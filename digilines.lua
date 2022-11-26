@@ -30,9 +30,9 @@
 ]]
 
 local use = ...
-local storage, get_node_maybe_load,
+local get_random_id, get_node_maybe_load,
       CONTAINER_NAME_PREFIX, DIGILINE_OFFSET = use("misc", {
-	"storage", "get_node_maybe_load",
+	"get_random_id", "get_node_maybe_load",
 	"CONTAINER_NAME_PREFIX", "DIGILINE_OFFSET"
 })
 local get_related_container, get_related_inside,
@@ -65,15 +65,14 @@ local DIGILINE_NODE_RULES = {
 -- is not a container, nil is returned.
 local function get_digiline_id(container_pos)
 	local meta = minetest.get_meta(container_pos)
-	local id = tonumber((meta:get("area_containers:digiline_id")))
+	local id = meta:get("area_containers:digiline_id")
 	if not id then
 		local node = get_node_maybe_load(container_pos)
 		local prefix = string.sub(node.name, 1, #CONTAINER_NAME_PREFIX)
 		if prefix == CONTAINER_NAME_PREFIX then
-			-- It's a container; allocate the ID for the first use.
-			id = storage:get_int("next_digiline_id")
-			storage:set_int("next_digiline_id", id + 1)
-			meta:set_int("area_containers:digiline_id", id)
+			-- It's a container; get the ID for the first use.
+			id = get_random_id()
+			meta:set_string("area_containers:digiline_id", id)
 		end
 	end
 	return id

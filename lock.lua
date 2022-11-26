@@ -31,17 +31,9 @@
 ]]
 
 local use = ...
-local rng = use("misc", {"rng"})
+local get_random_id = use("misc", {"get_random_id"})
 
 local exports = {}
-
--- Returns a unique lock ID.
-local function get_next_lock_id()
-	-- Generate 64 random bits and encode them in hexadecimal:
-	return string.format("%08x%08x",
-		rng:next() + 2147483648,
-		rng:next(0, 131071) * 32768 + math.random(0, 32767))
-end
 
 -- Returns whether the named player is an admin of the node owned as given.
 -- A nil owner means that the node is unowned.
@@ -83,7 +75,7 @@ function exports.set_lock(pos, user)
 	end
 
 	meta:set_string("area_containers:lock",
-		meta:get("area_containers:lock_inactive") or get_next_lock_id())
+		meta:get("area_containers:lock_inactive") or get_random_id())
 	meta:set_string("area_containers:lock_inactive", "")
 	-- Take ownership if it's unowned:
 	if not owner then meta:set_string("owner", player_name) end

@@ -44,14 +44,14 @@ local MAPGEN_LIMIT =
 
 local CHUNKSIZE = tonumber(minetest.get_mapgen_setting("chunksize")) or 5
 
-exports.storage = minetest.get_mod_storage()
-
 -- A randomly seeded instance of PcgRandom. I'm just trying to mix up a few
 -- entropy sources here.
-exports.rng = PcgRandom(math.random(0, 32767))
-exports.rng = PcgRandom(math.random(0, 32767) + exports.rng:next())
-exports.rng = PcgRandom(os.time() + exports.rng:next())
-exports.rng = PcgRandom(os.clock() + exports.rng:next())
+local rng = PcgRandom(math.random(0, 32767))
+rng = PcgRandom(math.random(0, 32767) + rng:next())
+rng = PcgRandom(os.time() + rng:next())
+rng = PcgRandom(os.clock() + rng:next())
+
+exports.storage = minetest.get_mod_storage()
 
 exports.translate = minetest.get_translator("area_containers")
 
@@ -74,6 +74,14 @@ end
 
 -- Does and returns nothing.
 function exports.null_func() end
+
+-- Returns a (most likely) unique random ID string.
+function exports.get_random_id()
+	-- Generate 64 random bits and encode them in hexadecimal:
+	return string.format("%08x%08x",
+		rng:next() + 2147483648,
+		rng:next(0, 131071) * 32768 + math.random(0, 32767))
+end
 
 -- Rounds the number down to the nearest multiple of the blocksize.
 function exports.floor_blocksize(a)
